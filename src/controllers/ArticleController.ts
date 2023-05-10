@@ -16,7 +16,13 @@ const getAllArticles = async (req: Request, res: Response) => {
 const getArticleById = async (req: Request, res: Response) => {
   const id = Number(req.params.id)
   try {
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM articles WHERE id = ?', [id])
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `SELECT articles.*, users.name, users.avatar, users.wallet
+       FROM articles
+       JOIN users ON articles.author_id = users.id
+       WHERE articles.id = ?`,
+      [id],
+    )
     const article = rows[0]
     if (!article) {
       return res.status(404).send(`Article with id ${id} not found`)

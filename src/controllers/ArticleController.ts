@@ -1,7 +1,6 @@
 import { Request, Response } from 'express'
 import { OkPacket, RowDataPacket } from 'mysql2'
 import pool from '../db'
-import Article from '../models/Article'
 
 const getAllArticles = async (req: Request, res: Response) => {
   try {
@@ -35,11 +34,10 @@ const createArticle = async (req: Request, res: Response) => {
     const [result] = await pool.query<OkPacket>('INSERT INTO articles(author_id, hash, content) VALUES(?, ?, ?)', [
       authorId,
       hash,
-      content,
+      JSON.stringify(content),
     ])
     const id = result.insertId
-    const newArticle: Article = { id, authorId, hash, content }
-    return res.status(201).json(newArticle)
+    return res.status(201).json({ id })
   } catch (err) {
     console.error(err)
     return res.status(500).send('Internal Server Error')

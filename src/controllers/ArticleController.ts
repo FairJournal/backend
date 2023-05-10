@@ -75,7 +75,7 @@ const deleteArticle = async (req: Request, res: Response) => {
     if (result.affectedRows === 0) {
       return res.status(404).send(`Article with id ${id} not found`)
     }
-    return res.sendStatus(204)
+    return res.json({ id })
   } catch (err) {
     console.error(err)
     return res.status(500).send('Internal Server Error')

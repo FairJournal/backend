@@ -50,18 +50,18 @@ const createArticle = async (req: Request, res: Response) => {
   }
 }
 
-const updateArticle = async (req: Request, res: Response) => {
+const updateArticle = async (req: Request, res: Response): Promise<Response | void> => {
   const id = Number(req.params.id)
   const { authorId, hash, content } = req.body
   try {
     const [result] = await pool.query<OkPacket>(
       'UPDATE articles SET author_id = ?, hash = ?, content = ? WHERE id = ?',
-      [authorId, hash, content, id],
+      [authorId, hash, JSON.stringify(content), id],
     )
     if (result.affectedRows === 0) {
       return res.status(404).send(`Article with id ${id} not found`)
     }
-    return res.sendStatus(204)
+    return res.json({ id })
   } catch (err) {
     console.error(err)
     return res.status(500).send('Internal Server Error')

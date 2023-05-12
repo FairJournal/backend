@@ -13,13 +13,27 @@ import {
   getArticleById,
   updateArticle,
 } from './controllers/ArticleController'
+import multer from 'multer'
+import path from 'path'
+// Configure storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    // Use the originalname property to get the original extension
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+  }
+})
+
+const upload = multer({ storage });
 
 const router = Router()
 
 // User Routes
 router.get('/users/:id', getUserById)
 router.get('/users/:id/articles', getArticlesByUserId)
-router.post('/users/:id', updateUser)
+router.post('/users/:id', upload.single('avatar'), updateUser)
 router.delete('/users/:id', deleteUser)
 
 // Article Routes

@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { OkPacket, RowDataPacket } from 'mysql2'
 import pool from '../db'
 import User from '../models/User'
+import * as fs from 'fs'
 
 const getUserById = async (req: Request, res: Response) => {
   const id = Number(req.params.id)
@@ -49,21 +50,55 @@ const getArticlesByUserId = async (req: Request, res: Response) => {
 //   }
 // }
 
+/**
+ * Update user info
+ */
 const updateUser = async (req: Request, res: Response) => {
-  const id = Number(req.params.id)
-  const { wallet, avatar, name, description } = req.body
   try {
+    const id = Number(req.params.id)
+    if (!id){
+      throw new Error('Id is required')
+    }
+
+    const { wallet, name, description } = req.body
+    if (!wallet){
+      throw new Error('Wallet is required')
+    }
+
+    if(!name){
+      throw new Error('Name is required')
+    }
+
+    if (!description){
+      throw new Error('Description is required')
+    }
+
+    if (!req.file){
+      throw new Error('Avatar is required')
+    }
+
+    // get old user info
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id])
+    const user = rows[0] as User
+
+    // update user info
     const [result] = await pool.query<OkPacket>(
       'UPDATE users SET wallet = ?, avatar = ?, name = ?, description = ? WHERE id = ?',
-      [wallet, avatar, name, description, id],
+      [wallet, req.file.path, name, description, id],
     )
+
+    // remove old avatar if exists sync
+    if (user.avatar && fs.existsSync(user.avatar)){
+      fs.unlinkSync(user.avatar)
+    }
+
     if (result.affectedRows === 0) {
-      return res.status(404).send(`User with id ${id} not found`)
+      return res.status(404).send(`User with id "${id}" not found`)
     }
     return res.sendStatus(204)
   } catch (err) {
     console.error(err)
-    return res.status(500).send('Internal Server Error')
+    return res.status(500).send(err.message)
   }
 }
 
@@ -105,7 +140,7 @@ const authorizeByWallet = async (req: Request, res: Response) => {
     return res.json(user)
   } catch (err) {
     console.error(err)
-    return res.status(500).send('Internal Server Error')
+    return res.status(500).send(err.message)
   }
 }
 

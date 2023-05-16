@@ -10,6 +10,7 @@ app.use(cors())
 
 // Routes
 app.use('/api', router)
+app.use('/avatars', express.static('avatars'))
 
 // Start server
 const PORT = process.env.PORT || 5000

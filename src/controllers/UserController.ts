@@ -56,25 +56,26 @@ const getArticlesByUserId = async (req: Request, res: Response) => {
 const updateUser = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id)
-    if (!id){
+    if (!id) {
       throw new Error('Id is required')
     }
 
     const { wallet, name, description } = req.body
-    if (!wallet){
+    if (!wallet) {
       throw new Error('Wallet is required')
     }
 
-    if(!name){
+    if (!name) {
       throw new Error('Name is required')
     }
 
-    if (!description){
+    if (!description) {
       throw new Error('Description is required')
     }
 
-    if (!req.file){
-      throw new Error('Avatar is required')
+    let avatarPath = null
+    if (req.file) {
+      avatarPath = req.file.path
     }
 
     // get old user info
@@ -83,19 +84,26 @@ const updateUser = async (req: Request, res: Response) => {
 
     // update user info
     const [result] = await pool.query<OkPacket>(
-      'UPDATE users SET wallet = ?, avatar = ?, name = ?, description = ? WHERE id = ?',
-      [wallet, req.file.path, name, description, id],
+      'UPDATE users SET wallet = ?, avatar = IFNULL(?, avatar), name = ?, description = ? WHERE id = ?',
+      [wallet, avatarPath, name, description, id],
     )
 
     // remove old avatar if exists sync
-    if (user.avatar && fs.existsSync(user.avatar)){
+    if (user.avatar && fs.existsSync(user.avatar)) {
       fs.unlinkSync(user.avatar)
     }
 
     if (result.affectedRows === 0) {
       return res.status(404).send(`User with id "${id}" not found`)
     }
-    return res.sendStatus(204)
+
+    // get updated user info
+    const [updatedRows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id])
+    const updatedUser = updatedRows[0]
+    if (!updatedUser) {
+      throw new Error('User not found')
+    }
+    return res.json(updatedUser)
   } catch (err) {
     console.error(err)
     return res.status(500).send(err.message)

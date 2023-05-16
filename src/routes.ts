@@ -13,6 +13,7 @@ import {
   getArticleById,
   updateArticle,
 } from './controllers/ArticleController'
+import Image from './controllers/ImageController'
 import multer from 'multer'
 import path from 'path'
 // Configure storage
@@ -42,6 +43,9 @@ router.get('/articles/:id', getArticleById)
 router.post('/articles', createArticle)
 router.put('/articles/:id', updateArticle)
 router.delete('/articles/:id', deleteArticle)
+
+// Images Routes
+router.post('/image/upload', upload.single('image'), Image.upload)
 
 // Auth route
 router.post('/auth', authorizeByWallet)

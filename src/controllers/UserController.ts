@@ -100,7 +100,9 @@ const updateUser = async (req: Request, res: Response) => {
     // get updated user info
     const [updatedRows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id])
     const updatedUser = updatedRows[0]
-
+    if (!updatedUser) {
+      throw new Error('User not found')
+    }
     return res.json(updatedUser)
   } catch (err) {
     console.error(err)

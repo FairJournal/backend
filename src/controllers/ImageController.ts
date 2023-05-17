@@ -24,8 +24,7 @@ const upload = async (req: Request, res: Response) => {
       id,
       success: 1,
       file: {
-        // todo should be changed to the actual url depends of the server url (local, dev, prod and etc)
-        url: `http://localhost:5555/${path}`,
+        url: `${process.env.URL}${path}`,
         relativePath: path,
       }
     })

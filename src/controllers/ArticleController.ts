@@ -46,7 +46,7 @@ const createArticle = async (req: Request, res: Response) => {
     return res.status(201).json({ id })
   } catch (err) {
     console.error(err)
-    return res.status(500).send('Internal Server Error')
+    return res.status(500).send(err.message)
   }
 }
 

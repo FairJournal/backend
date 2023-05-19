@@ -15,6 +15,9 @@ const getAllArticles = async (req: Request, res: Response) => {
 
 const getArticleById = async (req: Request, res: Response) => {
   const id = Number(req.params.id)
+  if (!id) {
+    return res.status(400).send('Article id is required')
+  }
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT articles.*, users.name, users.avatar, users.wallet
@@ -36,6 +39,15 @@ const getArticleById = async (req: Request, res: Response) => {
 
 const createArticle = async (req: Request, res: Response) => {
   const { authorId, hash, content } = req.body
+  if (!authorId) {
+    return res.status(400).send('Author id is required')
+  }
+  if (!hash) {
+    return res.status(400).send('Hash is required')
+  }
+  if (!content) {
+    return res.status(400).send('Content is required')
+  }
   try {
     const [result] = await pool.query<OkPacket>('INSERT INTO articles(author_id, hash, content) VALUES(?, ?, ?)', [
       authorId,
@@ -53,6 +65,15 @@ const createArticle = async (req: Request, res: Response) => {
 const updateArticle = async (req: Request, res: Response): Promise<Response | void> => {
   const id = Number(req.params.id)
   const { authorId, hash, content } = req.body
+  if (!authorId) {
+    return res.status(400).send('Author id is required')
+  }
+  if (!hash) {
+    return res.status(400).send('Hash is required')
+  }
+  if (!content) {
+    return res.status(400).send('Content is required')
+  }
   try {
     const [result] = await pool.query<OkPacket>(
       'UPDATE articles SET author_id = ?, hash = ?, content = ? WHERE id = ?',
@@ -68,8 +89,11 @@ const updateArticle = async (req: Request, res: Response): Promise<Response | vo
   }
 }
 
-const deleteArticle = async (req: Request, res: Response) => {
+const deleteArticle = async (req: Request, res: Response): Promise<Response | void> => {
   const id = Number(req.params.id)
+  if (!id) {
+    return res.status(400).send('Id is required')
+  }
   try {
     const [result] = await pool.query<OkPacket>('DELETE FROM articles WHERE id = ?', [id])
     if (result.affectedRows === 0) {

@@ -12,6 +12,13 @@ const upload = async (req: Request, res: Response) => {
     return res.status(400).send('No image uploaded.')
   }
 
+  // Check image size
+  const fileSizeInBytes = req.file.size
+  const maxSizeInBytes = 10 * 1024 * 1024 // 10 megabytes
+  if (fileSizeInBytes > maxSizeInBytes) {
+    return res.status(400).send('Image size exceeds the maximum limit of 10 megabytes.')
+  }
+
   try {
     const path = req.file.path
     const [result] = await pool.query<OkPacket>('INSERT INTO images(author_id, signature, path) VALUES(?, ?, ?)', [
@@ -26,7 +33,7 @@ const upload = async (req: Request, res: Response) => {
       file: {
         url: `${process.env.URL}${path}`,
         relativePath: path,
-      }
+      },
     })
   } catch (err) {
     console.error(err)

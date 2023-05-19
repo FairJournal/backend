@@ -6,6 +6,9 @@ import * as fs from 'fs'
 
 const getUserById = async (req: Request, res: Response) => {
   const id = Number(req.params.id)
+  if (!id) {
+    return res.status(400).send('Id is required')
+  }
   try {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id])
     const user = rows[0] as User
@@ -21,10 +24,13 @@ const getUserById = async (req: Request, res: Response) => {
 
 const getArticlesByUserId = async (req: Request, res: Response) => {
   const id = Number(req.params.id)
+  if (!id) {
+    return res.status(400).send('User id is required')
+  }
   try {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM articles WHERE author_id = ?', [id])
     const articles = rows
-    if (!articles) {
+    if (!articles || articles.length === 0) {
       return res.status(404).send(`No articles found for user with id ${id}`)
     }
     return res.json(articles)
@@ -75,6 +81,12 @@ const updateUser = async (req: Request, res: Response) => {
 
     let avatarPath = null
     if (req.file) {
+      // Check avatar image size
+      const fileSizeInBytes = req.file.size
+      const maxSizeInBytes = 10 * 1024 * 1024 // 10 megabytes
+      if (fileSizeInBytes > maxSizeInBytes) {
+        return res.status(400).send('Avatar image size exceeds the maximum limit of 10 megabytes.')
+      }
       avatarPath = req.file.path
     }
 
@@ -112,6 +124,9 @@ const updateUser = async (req: Request, res: Response) => {
 
 const deleteUser = async (req: Request, res: Response) => {
   const id = Number(req.params.id)
+  if (!id) {
+    return res.status(400).send('User id is required')
+  }
   try {
     const [result] = await pool.query<OkPacket>('DELETE FROM users WHERE id = ?', [id])
     if (result.affectedRows === 0) {
@@ -123,6 +138,7 @@ const deleteUser = async (req: Request, res: Response) => {
     return res.status(500).send('Internal Server Error')
   }
 }
+
 
 const authorizeByWallet = async (req: Request, res: Response) => {
   const { wallet }: { wallet: string } = req.body

@@ -29,10 +29,7 @@ const getArticlesByUserId = async (req: Request, res: Response) => {
   }
   try {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM articles WHERE author_id = ?', [id])
-    const articles = rows
-    if (!articles || articles.length === 0) {
-      return res.status(404).send(`No articles found for user with id ${id}`)
-    }
+    const articles = rows || []
     return res.json(articles)
   } catch (err) {
     console.error(err)
@@ -138,7 +135,6 @@ const deleteUser = async (req: Request, res: Response) => {
     return res.status(500).send('Internal Server Error')
   }
 }
-
 
 const authorizeByWallet = async (req: Request, res: Response) => {
   const { wallet }: { wallet: string } = req.body

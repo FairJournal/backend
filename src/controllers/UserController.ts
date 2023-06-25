@@ -72,10 +72,6 @@ const updateUser = async (req: Request, res: Response) => {
       throw new Error('Name is required')
     }
 
-    if (!description) {
-      throw new Error('Description is required')
-    }
-
     let avatarPath = null
     if (req.file) {
       // Check avatar image size

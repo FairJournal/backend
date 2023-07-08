@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src",
+    "test",
+    "jest.config.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": [
+      "dom"
+    ]
+  }
+}

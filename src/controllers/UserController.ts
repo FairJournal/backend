@@ -6,52 +6,39 @@ import * as fs from 'fs'
 
 const getUserById = async (req: Request, res: Response) => {
   const id = Number(req.params.id)
+
   if (!id) {
     return res.status(400).send('Id is required')
   }
   try {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id])
     const user = rows[0] as User
+
     if (!user) {
       return res.status(404).send(`User with id ${id} not found`)
     }
+
     return res.json(user)
-  } catch (err) {
-    console.error(err)
-    return res.status(500).send('Internal Server Error')
+  } catch (e) {
+    return res.status(500).send(`Internal Server Error: ${(e as Error).message}`)
   }
 }
 
 const getArticlesByUserId = async (req: Request, res: Response) => {
   const id = Number(req.params.id)
+
   if (!id) {
     return res.status(400).send('User id is required')
   }
   try {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM articles WHERE author_id = ?', [id])
     const articles = rows || []
+
     return res.json(articles)
-  } catch (err) {
-    console.error(err)
-    return res.status(500).send('Internal Server Error')
+  } catch (e) {
+    return res.status(500).send(`Internal Server Error: ${(e as Error).message}`)
   }
 }
-
-// const createUser = async (req: Request, res: Response) => {
-//   const { wallet } = req.body
-//   try {
-//     const [result] = await pool.query<OkPacket>(
-//       'INSERT INTO users(wallet, avatar, name, description) VALUES(?, ?, ?, ?)',
-//       [wallet, '', '', ''],
-//     )
-//     const id = result.insertId
-//     const newUser: User = { id, wallet, avatar: '', name: '', description: '', articles: [] }
-//     return res.status(201).json(newUser)
-//   } catch (err) {
-//     console.error(err)
-//     return res.status(500).send('Internal Server Error')
-//   }
-// }
 
 /**
  * Update user info
@@ -59,11 +46,13 @@ const getArticlesByUserId = async (req: Request, res: Response) => {
 const updateUser = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id)
+
     if (!id) {
       throw new Error('Id is required')
     }
 
     const { wallet, name, description } = req.body
+
     if (!wallet) {
       throw new Error('Wallet is required')
     }
@@ -73,10 +62,12 @@ const updateUser = async (req: Request, res: Response) => {
     }
 
     let avatarPath = null
+
     if (req.file) {
       // Check avatar image size
       const fileSizeInBytes = req.file.size
       const maxSizeInBytes = 10 * 1024 * 1024 // 10 megabytes
+
       if (fileSizeInBytes > maxSizeInBytes) {
         return res.status(400).send('Avatar image size exceeds the maximum limit of 10 megabytes.')
       }
@@ -105,30 +96,33 @@ const updateUser = async (req: Request, res: Response) => {
     // get updated user info
     const [updatedRows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id])
     const updatedUser = updatedRows[0]
+
     if (!updatedUser) {
       throw new Error('User not found')
     }
+
     return res.json(updatedUser)
-  } catch (err) {
-    console.error(err)
-    return res.status(500).send(err.message)
+  } catch (e) {
+    return res.status(500).send(`Internal Server Error: ${(e as Error).message}`)
   }
 }
 
 const deleteUser = async (req: Request, res: Response) => {
   const id = Number(req.params.id)
+
   if (!id) {
     return res.status(400).send('User id is required')
   }
   try {
     const [result] = await pool.query<OkPacket>('DELETE FROM users WHERE id = ?', [id])
+
     if (result.affectedRows === 0) {
       return res.status(404).send(`User with id ${id} not found`)
     }
+
     return res.sendStatus(204)
-  } catch (err) {
-    console.error(err)
-    return res.status(500).send('Internal Server Error')
+  } catch (e) {
+    return res.status(500).send(`Internal Server Error: ${(e as Error).message}`)
   }
 }
 
@@ -154,9 +148,8 @@ const authorizeByWallet = async (req: Request, res: Response) => {
     }
 
     return res.json(user)
-  } catch (err) {
-    console.error(err)
-    return res.status(500).send(err.message)
+  } catch (e) {
+    return res.status(500).send(`Internal Server Error: ${(e as Error).message}`)
   }
 }
 

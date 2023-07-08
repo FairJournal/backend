@@ -1,11 +1,24 @@
 {
+  "include": ["src", "test"],
   "compilerOptions": {
-    "module": "commonjs",
+    "lib": [
+      "dom"
+    ],
+    "alwaysStrict": true,
+    "target": "ES6",
     "esModuleInterop": true,
-    "target": "es6",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
-    "outDir": "dist",
-    "sourceMap": true
+    "module": "commonjs",
+    "strict": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "rootDirs": ["src"],
+    "outDir": "dist"
   },
-  "include": ["src/**/*"]
 }

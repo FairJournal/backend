@@ -2,6 +2,7 @@ import { assertUpdateDataSignedArray, FileSystem } from '@fairjournal/file-syste
 import { PROJECT_NAME } from './controllers/file-system/const'
 import { Pool, RowDataPacket } from 'mysql2/promise'
 import pool from './db'
+import { stringToBytes } from './utils'
 
 /**
  * Function for processing batches of data
@@ -67,4 +68,29 @@ export async function syncFs(fs: FileSystem): Promise<void> {
     assertUpdateDataSignedArray(updates)
     updates.forEach(update => fs.addUpdate(update))
   })
+}
+
+/**
+ * Gets content by reference
+ *
+ * @param reference Reference
+ */
+export async function getContentByReference(reference: string): Promise<Uint8Array> {
+  // todo receive content from filesystem of the node
+  return stringToBytes(
+    JSON.stringify({
+      data: `Hello world! - ${reference}`,
+    }),
+  )
+}
+
+/**
+ * Extracts article text from JSON object
+ *
+ * @param jsonObject JSON object
+ * @param symbols Number of symbols to extract
+ */
+export function extractArticleText(jsonObject: unknown, symbols: number): string {
+  // todo implement
+  return 'Some short text here'
 }

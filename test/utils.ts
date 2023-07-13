@@ -1,5 +1,25 @@
 import { getSecureRandomBytes, KeyPair, keyPairFromSeed } from 'ton-crypto'
 import { Knex } from 'knex'
+import { Article } from '../src/controllers/file-system/blob/utils'
+
+/**
+ * Fake storage
+ */
+export interface FakeStorage {
+  /**
+   * Uploads data to the storage and returns its reference
+   *
+   * @param data Data to upload
+   */
+  upload: (data: Uint8Array) => Promise<string>
+
+  /**
+   * Downloads data from the storage by its reference
+   *
+   * @param reference Reference to download
+   */
+  download: (reference: string) => Promise<Uint8Array>
+}
 
 export const UPDATES_TABLE_NAME = 'fs_update'
 
@@ -36,4 +56,65 @@ export async function getRecordCount(db: Knex, tableName: string): Promise<numbe
  */
 export async function getUpdatesCount(db: Knex): Promise<number> {
   return getRecordCount(db, UPDATES_TABLE_NAME)
+}
+
+/**
+ * Generates a random number
+ *
+ * @param max Max value
+ */
+export function randomNumber(max = 1000): number {
+  return Math.floor(Math.random() * max)
+}
+
+/**
+ * Generates a random article
+ */
+export function generateArticle(): Article {
+  const articleId = randomNumber()
+
+  return {
+    slug: `article-${articleId}`,
+    data: {
+      title: `Article ${articleId}`,
+      text: 'Hello world! Article text here.',
+    },
+  }
+}
+
+/**
+ * Pads the string with zeros to the desired length
+ *
+ * @param input Input string
+ * @param resultSize Desired length
+ */
+export function padStringWithZeros(input: string, resultSize = 64): string {
+  // 'padStart' adds zeros to the start of the string until it reaches the desired length
+  return input.padStart(resultSize, '0')
+}
+
+/**
+ * Gets fake storage instance
+ */
+export function getFakeStorage(): FakeStorage {
+  let index = 0
+  const storage: Record<string, Uint8Array> = {}
+
+  return {
+    upload: async (data: Uint8Array): Promise<string> => {
+      index++
+
+      const reference = padStringWithZeros(index.toString())
+      storage[reference] = data
+
+      return reference
+    },
+    download: async (reference: string): Promise<Uint8Array> => {
+      if (!storage[reference]) {
+        throw new Error(`Reference "${reference}" not found`)
+      }
+
+      return storage[reference]
+    },
+  }
 }

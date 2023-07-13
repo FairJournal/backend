@@ -126,3 +126,42 @@ export function assertObject(data: unknown, customError?: string): asserts data 
     throw new Error(customError ? customError : 'Data is not an object')
   }
 }
+
+/**
+ * Bytes to string
+ *
+ * @param data Bytes to convert
+ */
+export function bytesToString(data: Uint8Array): string {
+  const decoder = new TextDecoder()
+
+  return decoder.decode(data)
+}
+
+/**
+ * String to bytes
+ *
+ * @param data String to convert
+ */
+export function stringToBytes(data: string): Uint8Array {
+  const encoder = new TextEncoder()
+
+  return encoder.encode(data)
+}
+
+/**
+ * Asserts that the data is a JSON string
+ *
+ * @param data Data to check
+ */
+export function assertJson(data: unknown): asserts data is string {
+  if (typeof data !== 'string') {
+    throw new Error('JSON assert: data is not a string')
+  }
+
+  try {
+    JSON.parse(data)
+  } catch (e) {
+    throw new Error(`JSON assert: data is not a valid JSON: ${(e as Error).message}`)
+  }
+}

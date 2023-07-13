@@ -36,6 +36,9 @@ jobs:
           mysql -h 127.0.0.1 -uroot -ppassword -e "GRANT ALL ON fair_journal.* TO 'fjuser'@'%';"
           mysql -h 127.0.0.1 -uroot -ppassword -e "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '';"
 
+      - name: Knex migrate
+        run: npx knex migrate:latest
+
       - name: Create .env file
         run: |
           echo "PORT=3333" >> .env
@@ -43,7 +46,7 @@ jobs:
           echo "DB_PORT=3306" >> .env
           echo "DB_USER=fjuser" >> .env
           echo "DB_PASSWORD=fjpassword" >> .env
-          echo "DB_NAME=bigbang" >> .env
+          echo "DB_NAME=fair_journal" >> .env
           echo "SHOW_LOGS=true" >> .env
 
       - name: Set up Node.js

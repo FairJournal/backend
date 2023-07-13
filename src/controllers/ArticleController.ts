@@ -5,16 +5,16 @@ import pool from '../db'
 const getAllArticles = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM articles')
-    const articles = rows
-    return res.json(articles)
-  } catch (err) {
-    console.error(err)
-    return res.status(500).send('Internal Server Error')
+
+    return res.json(rows)
+  } catch (e) {
+    return res.status(500).send(`Internal Server Error: ${(e as Error).message}`)
   }
 }
 
 const getArticleById = async (req: Request, res: Response) => {
   const id = Number(req.params.id)
+
   if (!id) {
     return res.status(400).send('Article id is required')
   }
@@ -27,24 +27,28 @@ const getArticleById = async (req: Request, res: Response) => {
       [id],
     )
     const article = rows[0]
+
     if (!article) {
       return res.status(404).send(`Article with id ${id} not found`)
     }
+
     return res.json(article)
-  } catch (err) {
-    console.error(err)
-    return res.status(500).send('Internal Server Error')
+  } catch (e) {
+    return res.status(500).send(`Internal Server Error: ${(e as Error).message}`)
   }
 }
 
 const createArticle = async (req: Request, res: Response) => {
   const { authorId, hash, content } = req.body
+
   if (!authorId) {
     return res.status(400).send('Author id is required')
   }
+
   if (!hash) {
     return res.status(400).send('Hash is required')
   }
+
   if (!content) {
     return res.status(400).send('Content is required')
   }
@@ -55,22 +59,25 @@ const createArticle = async (req: Request, res: Response) => {
       JSON.stringify(content),
     ])
     const id = result.insertId
+
     return res.status(201).json({ id })
-  } catch (err) {
-    console.error(err)
-    return res.status(500).send(err.message)
+  } catch (e) {
+    return res.status(500).send(`Internal Server Error: ${(e as Error).message}`)
   }
 }
 
 const updateArticle = async (req: Request, res: Response): Promise<Response | void> => {
   const id = Number(req.params.id)
   const { authorId, hash, content } = req.body
+
   if (!authorId) {
     return res.status(400).send('Author id is required')
   }
+
   if (!hash) {
     return res.status(400).send('Hash is required')
   }
+
   if (!content) {
     return res.status(400).send('Content is required')
   }
@@ -79,30 +86,33 @@ const updateArticle = async (req: Request, res: Response): Promise<Response | vo
       'UPDATE articles SET author_id = ?, hash = ?, content = ? WHERE id = ?',
       [authorId, hash, JSON.stringify(content), id],
     )
+
     if (result.affectedRows === 0) {
       return res.status(404).send(`Article with id ${id} not found`)
     }
+
     return res.json({ id })
-  } catch (err) {
-    console.error(err)
-    return res.status(500).send('Internal Server Error')
+  } catch (e) {
+    return res.status(500).send(`Internal Server Error: ${(e as Error).message}`)
   }
 }
 
 const deleteArticle = async (req: Request, res: Response): Promise<Response | void> => {
   const id = Number(req.params.id)
+
   if (!id) {
     return res.status(400).send('Id is required')
   }
   try {
     const [result] = await pool.query<OkPacket>('DELETE FROM articles WHERE id = ?', [id])
+
     if (result.affectedRows === 0) {
       return res.status(404).send(`Article with id ${id} not found`)
     }
+
     return res.json({ id })
-  } catch (err) {
-    console.error(err)
-    return res.status(500).send('Internal Server Error')
+  } catch (e) {
+    return res.status(500).send(`Internal Server Error: ${(e as Error).message}`)
   }
 }
 

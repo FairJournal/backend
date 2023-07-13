@@ -1,0 +1,67 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Install MySQL client
+        run: sudo apt-get install -y mysql-client
+
+      - name: Setup MySQL Database
+        run: |
+          mysql -h 127.0.0.1 -uroot -ppassword < ./migrations/db.sql
+          mysql -h 127.0.0.1 -uroot -ppassword -e "CREATE USER 'fjuser'@'%' IDENTIFIED BY 'fjpassword';"
+          mysql -h 127.0.0.1 -uroot -ppassword -e "GRANT ALL ON fair_journal.* TO 'fjuser'@'%';"
+          mysql -h 127.0.0.1 -uroot -ppassword -e "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '';"
+
+      - name: Create .env file
+        run: |
+          echo "PORT=3333" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_USER=fjuser" >> .env
+          echo "DB_PASSWORD=fjpassword" >> .env
+          echo "DB_NAME=fair_journal" >> .env
+          echo "SHOW_LOGS=true" >> .env
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check types
+        run: npm run check:types
+
+      - name: Lint check
+        run: npm run lint:check
+
+      - name: Knex migrate
+        run: npx knex migrate:latest
+
+      - name: Run tests
+        run: npm run test

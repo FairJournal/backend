@@ -18,10 +18,10 @@ import multer from 'multer'
 import path from 'path'
 // Configure storage
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: (req, file, cb) => {
     cb(null, 'avatars/')
   },
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
     // Use the originalname property to get the original extension
     cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
   },

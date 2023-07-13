@@ -24,7 +24,7 @@ and run commands:
 
 `CREATE USER 'fjuser'@'localhost' IDENTIFIED BY 'STRONG_PASSWORD_HERE';`
 
-`GRANT ALL PRIVILEGES ON bigbang.* TO 'fjuser'@'localhost';`
+`GRANT ALL PRIVILEGES ON fair_journal.* TO 'fjuser'@'localhost';`
 
 `FLUSH PRIVILEGES;`
 

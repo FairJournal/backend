@@ -3,19 +3,20 @@ import { assertAddress } from '../../../utils'
 import { fileSystem } from '../../../app'
 
 /**
- * Check if user exists in the file system
+ * Gets current user's update id
  */
 export default async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { address } = req.query
     assertAddress(address)
 
-    const isUserExists = fileSystem.isUserExists(address.toLowerCase())
+    const addressLowerCased = address.toLowerCase()
+    const updateId = fileSystem.getUpdateId(addressLowerCased)
 
     res.json({
       status: 'ok',
-      address: address.toLowerCase(),
-      isUserExists,
+      address: addressLowerCased,
+      updateId,
     })
   } catch (e) {
     next(e)

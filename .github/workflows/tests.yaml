@@ -44,6 +44,7 @@ jobs:
           echo "DB_USER=fjuser" >> .env
           echo "DB_PASSWORD=fjpassword" >> .env
           echo "DB_NAME=bigbang" >> .env
+          echo "SHOW_LOGS=true" >> .env
 
       - name: Set up Node.js
         uses: actions/setup-node@v2

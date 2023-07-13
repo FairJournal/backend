@@ -1,5 +1,5 @@
-import { getSecureRandomBytes, KeyPair, keyPairFromSeed, sign } from 'ton-crypto'
-import { Knex } from "knex";
+import { getSecureRandomBytes, KeyPair, keyPairFromSeed } from 'ton-crypto'
+import { Knex } from 'knex'
 
 export const UPDATES_TABLE_NAME = 'fs_update'
 

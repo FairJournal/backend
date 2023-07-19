@@ -1,3 +1,10 @@
+import * as crypto from 'crypto'
+import * as fs from 'fs'
+import { promisify } from 'util'
+import path from 'path'
+
+const readFile = promisify(fs.read)
+
 /**
  * Length of a public key
  */
@@ -165,3 +172,75 @@ export function assertJson(data: unknown): asserts data is string {
     throw new Error(`JSON assert: data is not a valid JSON: ${(e as Error).message}`)
   }
 }
+
+/**
+ * Calculates SHA256 of a file
+ *
+ * @param filePath Path to the file
+ */
+export async function calculateSHA256(filePath: string): Promise<string> {
+  const hash = crypto.createHash('sha256')
+  const fd = fs.openSync(filePath, 'r')
+  const bufferSize = 8192 // 8KB at a time
+  const buffer = Buffer.alloc(bufferSize)
+
+  let bytesRead: number
+
+  do {
+    ;({ bytesRead } = await readFile(fd, buffer, 0, bufferSize, null))
+    hash.update(buffer.slice(0, bytesRead))
+  } while (bytesRead === bufferSize)
+
+  fs.closeSync(fd)
+
+  return hash.digest('hex').toLowerCase()
+}
+
+/**
+ * Converts relative path to absolute
+ *
+ * @param paths Paths to convert
+ */
+export function toAbsolutePath(...paths: string[]): string {
+  return path.resolve(...paths)
+}
+
+/**
+ * Delays the execution
+ *
+ * @param ms Delay in milliseconds
+ */
+export async function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
+ * Extracts a hash from a message
+ *
+ * @param message Message to extract hash from
+ */
+export function extractHash(message: string): string {
+  const hashRegex = /[A-Fa-f0-9]{64}/
+  const match = message.match(hashRegex)
+
+  if (match) {
+    return match[0]
+  } else {
+    throw new Error('No hash found in the message.')
+  }
+}
+
+/**
+ * Converts base64 string to uppercase hex string
+ */
+export function base64ToHex(base64: string): string {
+  return Buffer.from(base64, 'base64').toString('hex').toUpperCase()
+}
+
+/**
+ * Converts hex string to base64 string
+ */
+export function hexToBase64(hex: string): string {
+  return Buffer.from(hex, 'hex').toString('base64')
+}
+

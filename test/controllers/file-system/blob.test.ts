@@ -1,11 +1,12 @@
 // todo change managing of the file system to configure and call when needed
 process.env.SHOW_LOGS = 'false'
+import path from 'path'
 import { Article, ArticleResponse, ArticlesResponse } from '../../../src/controllers/file-system/blob/utils'
 import knex from 'knex'
 import knexConfig from '../../../knexfile'
 import pool from '../../../src/db'
 import supertest from 'supertest'
-import app, { clearFileSystem } from '../../../src/app'
+import app, { clearFileSystem, createTonStorageInstance, syncFileSystem } from '../../../src/app'
 import {
   createAddDirectoryAction,
   createAddFileAction,
@@ -13,14 +14,25 @@ import {
   personalSign,
   Update,
 } from '@fairjournal/file-system'
-import { createWallet, generateArticle, getFakeStorage, getUpdatesCount } from '../../utils'
+import {
+  createWallet,
+  generateArticle,
+  getFakeStorage,
+  getUpdatesCount,
+  removeAllTonStorageFiles,
+  tonStorageFilesList,
+} from '../../utils'
 import { PROJECT_NAME } from '../../../src/controllers/file-system/const'
 import { stringToBytes } from '../../../src/utils'
 import { GetUpdateIdResponse } from '../../../src/controllers/file-system/user/get-update-id-action'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import TonstorageCLI from 'tonstorage-cli'
 
 const db = knex(knexConfig.development)
 
 describe('blob', () => {
+  let tonStorage: TonstorageCLI
   beforeEach(async () => {
     // Rollback the migration (if any)
     await db.migrate.rollback()
@@ -28,6 +40,9 @@ describe('blob', () => {
     // Run the migration
     await db.migrate.latest()
     clearFileSystem()
+    tonStorage = createTonStorageInstance()
+    await removeAllTonStorageFiles(tonStorage)
+    expect(await tonStorageFilesList(tonStorage)).toHaveLength(0)
   })
 
   afterEach(async () => {
@@ -38,7 +53,45 @@ describe('blob', () => {
   afterAll(async () => {
     // Close the database connection after all tests are done
     await db.destroy()
-    pool.end()
+    await pool.end()
+    await removeAllTonStorageFiles(tonStorage)
+  })
+
+  it('upload and download blob', async () => {
+    const supertestApp = supertest(app)
+
+    await syncFileSystem()
+    const files = [
+      {
+        name: 'file1.txt',
+        mime_type: 'text/plain',
+        size: 12,
+        sha256: 'c0535e4be2b79ffd93291305436bf889314e4a3faec05ecffcbb7df31ad9e51a',
+        reference: '65d9deffdec24c795d88611d32b80831c076000af7402a8b5973bf188b0b6b2d',
+      },
+      {
+        name: 'img1.jpg',
+        mime_type: 'image/jpeg',
+        size: 2022171,
+        sha256: '6b0f972d83497327eb8adc8a9a58177d99140322570b86773969f6e5febec698',
+        reference: 'f67a56fe1f9198e1e5024eed4cc82f24137aaffb373351139c1e066a4e5d58fc',
+      },
+    ]
+
+    for (const [index, file] of files.entries()) {
+      const filePath = path.join(__dirname, `../../data/${file.name}`)
+      for (let i = 0; i < 10; i++) {
+        const response = await supertestApp.post('/v1/fs/blob/upload').attach('blob', filePath)
+        expect(response.status).toBe(200)
+        const data = response.body.data
+        expect(data.reference).toBe(file.reference)
+        expect(data.mime_type).toBe(file.mime_type)
+        expect(data.sha256).toBe(file.sha256)
+        expect(data.size).toBe(file.size)
+      }
+
+      expect(await tonStorageFilesList(tonStorage)).toHaveLength(index + 1)
+    }
   })
 
   it('create and get articles', async () => {

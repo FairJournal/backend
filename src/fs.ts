@@ -92,5 +92,6 @@ export async function getContentByReference(reference: string): Promise<Uint8Arr
  */
 export function extractArticleText(jsonObject: unknown, symbols: number): string {
   // todo implement
+  // todo move to utils
   return 'Some short text here'
 }

@@ -1,6 +1,11 @@
 import { getSecureRandomBytes, KeyPair, keyPairFromSeed } from 'ton-crypto'
 import { Knex } from 'knex'
 import { Article } from '../src/controllers/file-system/blob/utils'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import TonstorageCLI from 'tonstorage-cli'
+import { DaemonResponse, Torrent } from "../src/ton-utils";
+import { base64ToHex } from "../src/utils";
 
 /**
  * Fake storage
@@ -116,5 +121,29 @@ export function getFakeStorage(): FakeStorage {
 
       return storage[reference]
     },
+  }
+}
+
+/**
+ * Gets list of torrents from ton-storage
+ *
+ * @param tonStorage Ton-storage instance
+ */
+export async function tonStorageFilesList(tonStorage: TonstorageCLI): Promise<Torrent[]> {
+  const list = await tonStorage.list()
+
+  return (list?.result?.torrents || []) as Torrent[]
+}
+
+/**
+ * Removes all files from ton-storage
+ *
+ * @param tonStorage Ton-storage instance
+ */
+export async function removeAllTonStorageFiles(tonStorage: TonstorageCLI): Promise<void> {
+  const torrents = await tonStorageFilesList(tonStorage)
+  const itemsList = torrents || []
+  for (const item of itemsList) {
+    await tonStorage.remove(base64ToHex(item.hash))
   }
 }

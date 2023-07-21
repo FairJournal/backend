@@ -6,6 +6,7 @@ import { DEFAULT_DIRECTORY } from '../const'
 import { assertUpdateDataSigned } from '@fairjournal/file-system'
 import pool from '../../../db'
 import { OkPacket } from 'mysql2'
+import { isReferenceExists } from '../../../fs'
 
 /**
  * Request body
@@ -43,10 +44,9 @@ async function insertUpdate(update: UpdateDataSigned): Promise<number> {
  *
  * @param update Update data
  */
-function validateUpdate(update: UpdateDataSigned): string[] {
-  // todo check that all references are uploaded via the gateway
+async function validateUpdate(update: UpdateDataSigned): Promise<string[]> {
   const references: string[] = []
-  update.actions.forEach(action => {
+  for (const action of update.actions) {
     if (action.actionType === ActionType.addDirectory) {
       const data = action.actionData as AddDirectoryActionData
 
@@ -57,6 +57,10 @@ function validateUpdate(update: UpdateDataSigned): string[] {
       const data = action.actionData as AddFileActionData
       const reference = data.hash.toLowerCase()
       assertReference(reference)
+
+      if (!(await isReferenceExists(reference))) {
+        throw new Error(`Reference "${reference}" not found`)
+      }
       references.push(reference)
       const parts = getPathParts(data.path)
 
@@ -68,7 +72,7 @@ function validateUpdate(update: UpdateDataSigned): string[] {
     } else {
       throw new Error(`Unknown action type: "${action.actionType}"`)
     }
-  })
+  }
 
   return references
 }
@@ -81,7 +85,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     const { update } = req.body as ApplyBody
     assertObject(update)
     assertUpdateDataSigned(update)
-    validateUpdate(update)
+    await validateUpdate(update)
     fileSystem.addUpdate(update)
     await insertUpdate(update)
 

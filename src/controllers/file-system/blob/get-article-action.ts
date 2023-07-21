@@ -18,8 +18,20 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     assertAddress(userAddress)
     assertArticleName(slug)
 
-    const path = `/${userAddress.toLowerCase()}/${DEFAULT_DIRECTORY}/${slug}`
-    const data = fileSystem.getPathInfo(path)
+    const address = userAddress.toLowerCase()
+
+    if (!fileSystem.isUserExists(address)) {
+      throw new Error(`User not found: "${address}"`)
+    }
+
+    const path = `/${address}/${DEFAULT_DIRECTORY}/${slug}`
+    let data
+    try {
+      data = fileSystem.getPathInfo(path)
+    } catch (e) {
+      throw new Error(`Article not found: "${slug}". ${(e as Error).message}`)
+    }
+
     assertDirectory(data)
     const article = await directoryToArticle(data)
 

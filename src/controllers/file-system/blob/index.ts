@@ -4,6 +4,7 @@ import downloadAction from './download-action'
 import getArticleAction from './get-article-action'
 import getArticlesAction from './get-articles-action'
 import multer from 'multer'
+import { MAX_BLOB_SIZE } from '../const'
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -11,7 +12,7 @@ const storage = multer.diskStorage({
   },
 })
 
-const upload = multer({ storage, limits: { fileSize: 1024 * 1024 * 10 } })
+const upload = multer({ storage, limits: { fileSize: MAX_BLOB_SIZE } })
 
 const router = express.Router()
 router.post('/upload', upload.single('blob'), uploadAction)

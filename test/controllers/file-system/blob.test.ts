@@ -22,12 +22,14 @@ import {
   tonStorageFilesList,
   uploadBytes,
 } from '../../utils'
-import { PROJECT_NAME } from '../../../src/controllers/file-system/const'
+import { MAX_BLOB_SIZE, PROJECT_NAME } from '../../../src/controllers/file-system/const'
 import { stringToBytes } from '../../../src/utils'
 import { GetUpdateIdResponse } from '../../../src/controllers/file-system/user/get-update-id-action'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import TonstorageCLI from 'tonstorage-cli'
+import tmp from 'tmp'
+import fs from 'fs'
 
 const db = knex(knexConfig.development)
 
@@ -92,6 +94,39 @@ describe('blob', () => {
 
       expect(await tonStorageFilesList(tonStorage)).toHaveLength(index + 1)
     }
+  })
+
+  it('add update with reference that do not exists', async () => {
+    const supertestApp = supertest(app)
+
+    const wallet = await createWallet()
+
+    const author = {
+      address: wallet.publicKey.toString('hex'),
+      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+    }
+
+    const nonExistentReference = '0'.repeat(64)
+
+    const update = new Update(PROJECT_NAME, author.address, 1)
+    update.addAction(createAddUserAction(author.address))
+    update.addAction(
+      createAddFileAction({
+        path: '/index-json',
+        mimeType: 'application/json',
+        size: 100,
+        hash: nonExistentReference,
+      }),
+    )
+    update.setSignature(author.personalSign(update.getSignData()))
+
+    const response = await supertestApp.post('/v1/fs/update/apply').send({ update })
+
+    expect(response.status).toBe(500)
+    expect(response.body).toStrictEqual({
+      message: `Reference "${nonExistentReference}" not found`,
+      status: 'error',
+    })
   })
 
   it('create and get articles', async () => {
@@ -168,6 +203,112 @@ describe('blob', () => {
         expect(fsArticle.article.slug).toStrictEqual(article.slug)
         expect(fsArticle.article.data).toBeDefined()
       }
+    }
+  })
+
+  it('duplicate file upload', async () => {
+    const supertestApp = supertest(app)
+
+    // Sync file system before uploading
+    await syncFileSystem()
+
+    const file = {
+      name: 'file1.txt',
+      mime_type: 'text/plain',
+      size: 12,
+      sha256: 'c0535e4be2b79ffd93291305436bf889314e4a3faec05ecffcbb7df31ad9e51a',
+      reference: '65d9deffdec24c795d88611d32b80831c076000af7402a8b5973bf188b0b6b2d',
+    }
+
+    const filePath = path.join(__dirname, `../../data/${file.name}`)
+
+    // First upload
+    let response = await supertestApp.post('/v1/fs/blob/upload').attach('blob', filePath)
+    expect(response.status).toBe(200)
+    let data = response.body.data
+    expect(data.reference).toBe(file.reference)
+    expect(data.mime_type).toBe(file.mime_type)
+    expect(data.sha256).toBe(file.sha256)
+    expect(data.size).toBe(file.size)
+
+    // Second upload of the same file
+    response = await supertestApp.post('/v1/fs/blob/upload').attach('blob', filePath)
+    expect(response.status).toBe(200) // Or some error status if your application doesn't allow duplicate uploads
+    data = response.body.data
+
+    // Check if it is the same file or a different one based on your application logic
+    expect(data.reference).toBe(file.reference)
+    expect(data.mime_type).toBe(file.mime_type)
+    expect(data.sha256).toBe(file.sha256)
+    expect(data.size).toBe(file.size)
+
+    // Check that the count of files in tonStorage is still 1
+    expect(await tonStorageFilesList(tonStorage)).toHaveLength(1)
+  })
+
+  it('get non-existing article for an existing user', async () => {
+    const supertestApp = supertest(app)
+
+    const wallet = await createWallet()
+
+    const author = {
+      address: wallet.publicKey.toString('hex'),
+      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+    }
+
+    const update = new Update(PROJECT_NAME, author.address, 1)
+    update.addAction(createAddUserAction(author.address))
+    update.setSignature(author.personalSign(update.getSignData()))
+    await supertestApp.post('/v1/fs/update/apply').send({ update })
+
+    // Attempt to fetch an article that doesn't exist
+    const nonExistentSlug = 'non-existent-article'
+    const response = await supertestApp.get(
+      `/v1/fs/blob/get-article?userAddress=${author.address}&slug=${nonExistentSlug}`,
+    )
+
+    // The specific status code and error message will depend on how your application handles such situations
+    expect(response.status).toBe(500)
+    expect(response.body).toStrictEqual({
+      message: `Article not found: "${nonExistentSlug}". Get item: file not found: "articles"`,
+      status: 'error',
+    })
+  })
+
+  it('get article from non-existing user', async () => {
+    const supertestApp = supertest(app)
+
+    // Attempt to fetch an article from a user that doesn't exist
+    const nonExistentUserAddress = '0'.repeat(64)
+    const response = await supertestApp.get(
+      `/v1/fs/blob/get-article?userAddress=${nonExistentUserAddress}&slug=some-article`,
+    )
+
+    expect(response.status).toBe(500)
+    expect(response.body).toStrictEqual({
+      message: `User not found: "${nonExistentUserAddress}"`,
+      status: 'error',
+    })
+  })
+
+  it('upload a file larger than the max size limit', async () => {
+    const supertestApp = supertest(app)
+    const tempFile = tmp.fileSync()
+
+    try {
+      fs.writeSync(tempFile.fd, Buffer.alloc(MAX_BLOB_SIZE + 1))
+
+      const response = await supertestApp.post('/v1/fs/blob/upload').attach('blob', tempFile.name)
+
+      // The specific status code and error message will depend on how your application handles this error
+      expect(response.status).toBe(500)
+      expect(response.body).toStrictEqual({
+        message: 'File too large',
+        status: 'error',
+      })
+    } finally {
+      // Clean up the temp file regardless of the test result
+      tempFile.removeCallback()
     }
   })
 })

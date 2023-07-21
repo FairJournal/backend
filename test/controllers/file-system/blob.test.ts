@@ -17,10 +17,10 @@ import {
 import {
   createWallet,
   generateArticle,
-  getFakeStorage,
   getUpdatesCount,
   removeAllTonStorageFiles,
   tonStorageFilesList,
+  uploadBytes,
 } from '../../utils'
 import { PROJECT_NAME } from '../../../src/controllers/file-system/const'
 import { stringToBytes } from '../../../src/utils'
@@ -96,7 +96,6 @@ describe('blob', () => {
 
   it('create and get articles', async () => {
     const supertestApp = supertest(app)
-    const storage = getFakeStorage()
 
     const authors = await Promise.all(
       Array.from({ length: 3 }, async () => {
@@ -122,7 +121,7 @@ describe('blob', () => {
       for (let articleIndex = 0; articleIndex < author.articles.length; articleIndex++) {
         const article = author.articles[articleIndex]
         const articleData = JSON.stringify(article)
-        const hash = await storage.upload(stringToBytes(articleData))
+        const hash = await uploadBytes(tonStorage, stringToBytes(articleData))
 
         const updatesInfo = (await supertestApp.get(`/v1/fs/user/get-update-id?address=${author.address}`))
           .body as GetUpdateIdResponse

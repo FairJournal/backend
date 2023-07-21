@@ -21,12 +21,21 @@ export const REFERENCE_LENGTH = 64
 export const MAX_ARTICLE_NAME_LENGTH = 64
 
 /**
+ * Checks if the value is a string
+ *
+ * @param value Value to check
+ */
+export function isString(value: unknown): boolean {
+  return typeof value === 'string'
+}
+
+/**
  * Asserts that the data is a string
  *
  * @param data Data to check
  */
 export function assertString(data: unknown): asserts data is string {
-  if (typeof data !== 'string') {
+  if (!isString(data)) {
     throw new Error('Data is not a string')
   }
 }
@@ -243,4 +252,3 @@ export function base64ToHex(base64: string): string {
 export function hexToBase64(hex: string): string {
   return Buffer.from(hex, 'hex').toString('base64')
 }
-

@@ -4,8 +4,12 @@ import { Article } from '../src/controllers/file-system/blob/utils'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import TonstorageCLI from 'tonstorage-cli'
-import { DaemonResponse, Torrent } from "../src/ton-utils";
-import { base64ToHex } from "../src/utils";
+import { assertDaemonResponse, Torrent } from '../src/ton-utils'
+import { base64ToHex } from '../src/utils'
+import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
+import * as crypto from 'crypto'
 
 /**
  * Fake storage
@@ -81,8 +85,24 @@ export function generateArticle(): Article {
   return {
     slug: `article-${articleId}`,
     data: {
-      title: `Article ${articleId}`,
-      text: 'Hello world! Article text here.',
+      blocks: [
+        {
+          type: 'title',
+          text: `Article ${articleId}`,
+        },
+        {
+          type: 'paragraph',
+          text: 'Hello world! Paragraph 1.',
+        },
+        {
+          type: 'paragraph',
+          text: 'Hello world 2222 Paragraph 2',
+        },
+        {
+          type: 'paragraph',
+          text: 'Hello world 33333 Paragraph 3',
+        },
+      ],
     },
   }
 }
@@ -145,5 +165,52 @@ export async function removeAllTonStorageFiles(tonStorage: TonstorageCLI): Promi
   const itemsList = torrents || []
   for (const item of itemsList) {
     await tonStorage.remove(base64ToHex(item.hash))
+  }
+}
+
+/**
+ * Writes data to a temporary file and returns its path
+ *
+ * @param data Data to write
+ * @param name File name
+ */
+export async function writeTempFile(data: Uint8Array, name = 'blob'): Promise<string> {
+  const dirName = crypto.randomBytes(16).toString('hex')
+  const tempDir = os.tmpdir()
+  const dirPath = path.join(tempDir, dirName)
+  fs.mkdirSync(dirPath)
+  const filePath = path.join(dirPath, name)
+  fs.writeFileSync(filePath, data)
+
+  return filePath
+}
+
+/**
+ * Uploads bytes to ton-storage
+ *
+ * @param tonStorage Ton-storage instance
+ * @param bytes Bytes to upload
+ */
+export async function uploadBytes(tonStorage: TonstorageCLI, bytes: Uint8Array): Promise<string> {
+  const filePath = await writeTempFile(bytes)
+  let response
+  try {
+    response = await tonStorage.create(filePath, {
+      copy: true,
+      desc: '',
+      upload: false,
+    })
+  } finally {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath)
+    }
+  }
+
+  if (response?.ok) {
+    assertDaemonResponse(response)
+
+    return base64ToHex(response.result.torrent.hash).toLowerCase()
+  } else {
+    throw new Error(`Failed to upload bytes to ton-storage: ${JSON.stringify(response)}`)
   }
 }

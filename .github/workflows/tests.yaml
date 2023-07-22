@@ -12,6 +12,9 @@ jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:latest
+      arch: arm64
 
     services:
       mysql:
@@ -25,6 +28,22 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+
+      - name: Install TON Storage Daemon and CLI
+        run: |
+          wget https://github.com/ton-blockchain/ton/releases/download/v2023.06/storage-daemon-linux-arm64
+          wget https://github.com/ton-blockchain/ton/releases/download/v2023.06/storage-daemon-cli-linux-arm64
+          chmod +x storage-daemon-linux-arm64
+          chmod +x storage-daemon-cli-linux-arm64
+          wget https://ton-blockchain.github.io/global.config.json
+
+      - name: Start TON Storage Daemon
+        run: |
+          ./storage-daemon-linux-arm64 -v 6 -C global.config.json -I 127.0.0.1:3333 -p 5555 -D storage-db &
+
+      - name: Start TON Storage Daemon CLI
+        run: |
+          ./storage-daemon-cli-linux-arm64 -I 127.0.0.1:5555 -k storage-db/cli-keys/client -p storage-db/cli-keys/server.pub &
 
       - name: Install MySQL client
         run: sudo apt-get install -y mysql-client

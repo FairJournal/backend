@@ -2,7 +2,11 @@
 FROM ubuntu:latest
 
 # Install dependencies
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y curl software-properties-common
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y nodejs
 
 # Download and install TON Storage and CLI
 RUN curl -LJO https://github.com/ton-blockchain/ton/releases/download/v2023.06/storage-daemon-linux-arm64 && chmod +x ./storage-daemon-linux-arm64

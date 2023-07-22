@@ -34,16 +34,8 @@ RUN npm ci
 RUN npm run check:types
 RUN npm run lint:check
 
-# Create a startup script to run MySQL and tests concurrently
-RUN echo "#!/bin/sh\n\
-/usr/bin/mysqld --user=mysql &\n\
-sleep 5 && \n\
-mysql -h 127.0.0.1 -uroot -e \"source ./migrations/db.sql\" && \n\
-mysql -h 127.0.0.1 -uroot -e \"CREATE USER 'fjuser'@'%' IDENTIFIED BY 'fjpassword';\" && \n\
-mysql -h 127.0.0.1 -uroot -e \"GRANT ALL ON fair_journal.* TO 'fjuser'@'%';\" && \n\
-mysql -h 127.0.0.1 -uroot -e \"ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '';\" && \n\
-npx knex migrate:latest && \n\
-npm run test\n\
-" > startup.sh && chmod +x startup.sh
+# Copy the startup script and make it executable
+COPY ./startup.sh /app/startup.sh
+RUN chmod +x /app/startup.sh
 
 CMD ["/app/startup.sh"]

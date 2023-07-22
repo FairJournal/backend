@@ -29,6 +29,7 @@ jobs:
           context: .
           platforms: linux/arm64
           push: false
+          load: true
           tags: your-docker-image-name:latest
 
       - name: Run tests

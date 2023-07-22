@@ -23,25 +23,13 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
-      - name: Build and push Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v2
         with:
           context: .
           platforms: linux/arm64
           push: false
+          tags: your-docker-image-name:latest
 
       - name: Run tests
-        run: |
-          echo "DB_HOST=db" >> .env
-          echo "DB_PORT=3306" >> .env
-          echo "DB_USER=root" >> .env
-          echo "DB_PASSWORD=example" >> .env
-          echo "DB_NAME=fair_journal" >> .env
-          echo "SHOW_LOGS=true" >> .env
-          echo "TON_STORAGE_BIN_PATH=/app/ton/storage-daemon-cli-linux-arm64" >> .env
-          echo "TON_STORAGE_HOST=127.0.0.1:5555" >> .env
-          echo "TON_STORAGE_DATABASE_PATH=/app/ton/storage-db" >> .env
-          echo "TON_STORAGE_TIMEOUT=5000" >> .env
-          echo "TON_STORAGE_WAIT_ATTEMPTS=3" >> .env
-          echo "TON_STORAGE_CHECK_WAIT_TIMEOUT=1000" >> .env
-          docker-compose up --build
+        run: docker run your-docker-image-name:latest

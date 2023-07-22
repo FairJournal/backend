@@ -41,4 +41,6 @@ RUN npm ci
 RUN npm run check:types
 RUN npm run lint:check
 RUN npx knex migrate:latest
-CMD /usr/bin/mysqld --user=mysql & sleep 5 && npm run test
+
+# Start tests
+CMD ["npm", "run", "test"]

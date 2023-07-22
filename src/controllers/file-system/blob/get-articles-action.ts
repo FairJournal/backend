@@ -6,6 +6,32 @@ import { fileSystem } from '../../../app'
 import { ArticlesResponse, directoriesToShortArticles } from './utils'
 
 /**
+ * Check if user exists
+ *
+ * @param userAddress - User address in the blockchain.
+ * @throws Will throw an error if the user is not found.
+ */
+function checkUserExistence(userAddress: string) {
+  if (!fileSystem.isUserExists(userAddress.toLowerCase())) {
+    throw new Error(`User not found: "${userAddress}"`)
+  }
+}
+
+/**
+ * Get path info and handle possible errors
+ *
+ * @param path - Path to the user's articles directory.
+ * @throws Will throw an error if the articles are not found.
+ */
+function getPathInfoWithErrorHandling(path: string) {
+  try {
+    return fileSystem.getPathInfo(path)
+  } catch (e) {
+    throw new Error(`Articles not found. ${(e as Error).message}`)
+  }
+}
+
+/**
  * Get articles of the user
  *
  * @param req Request
@@ -17,24 +43,12 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     const { userAddress } = req.query
 
     assertAddress(userAddress)
-
-    if (!fileSystem.isUserExists(userAddress.toLowerCase())) {
-      throw new Error(`User not found: "${userAddress}"`)
-    }
-
+    checkUserExistence(userAddress)
     const path = `/${userAddress.toLowerCase()}/${DEFAULT_DIRECTORY}`
-
-    let data
-    try {
-      data = fileSystem.getPathInfo(path)
-    } catch (e) {
-      throw new Error(`Articles not found. ${(e as Error).message}`)
-    }
-
+    const data = getPathInfoWithErrorHandling(path)
     assertDirectory(data)
     assertDirectories(data.directories)
     const articles = await directoriesToShortArticles(data.directories)
-
     // todo cache this object for N minutes. And invalidate cache when new article is added
     const response: ArticlesResponse = {
       status: 'ok',

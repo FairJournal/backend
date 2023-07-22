@@ -45,7 +45,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@fairjournal/file-system": "^1.8.0",
+    "@fairjournal/file-system": "^1.10.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -54,6 +54,7 @@
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.5.1",
     "sharp": "^0.32.1",
+    "tonstorage-cli": "^1.1.5",
     "uuid": "^9.0.0"
   }
 }

@@ -126,7 +126,11 @@ export async function directoriesToShortArticles(directories: Directory[]): Prom
   const articles: ShortArticle[] = []
   const filteredDirectories = directories.filter(isArticleDirectory)
   for (const directory of filteredDirectories) {
-    articles.push(await directoryToShortArticle(directory))
+    try {
+      articles.push(await directoryToShortArticle(directory))
+    } catch (e) {
+      /* empty */
+    }
   }
 
   return articles

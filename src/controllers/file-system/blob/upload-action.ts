@@ -1,12 +1,10 @@
-// import pool from '../../../db'
-// import mysql from 'mysql2/promise'
 import { NextFunction, Request, Response } from 'express'
 import pool from '../../../db'
 import { assertReference, base64ToHex, calculateSHA256, extractHash, toAbsolutePath } from '../../../utils'
 import { RowDataPacket } from 'mysql2'
 import { tonstorage } from '../../../app'
 import * as fs from 'fs'
-import { assertDaemonResponse } from '../../../ton-utils'
+import { FileStatus } from '../types'
 
 /**
  * Response with file info
@@ -71,21 +69,6 @@ export interface DBFileInfo {
    * Date of last update
    */
   updated_at?: Date
-}
-
-/**
- * File status in database
- */
-export enum FileStatus {
-  /**
-   * File is new, just uploaded
-   */
-  New = 0,
-
-  /**
-   * File is used in some article
-   */
-  Used = 1,
 }
 
 /**
@@ -228,7 +211,6 @@ export default async (req: Request, res: Response, next: NextFunction) => {
       let reference = ''
 
       if (response?.ok) {
-        assertDaemonResponse(response)
         reference = base64ToHex(response.result.torrent.hash).toLowerCase()
       } else {
         if (response?.error?.includes('duplicate hash')) {

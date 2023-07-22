@@ -4,9 +4,7 @@ import router from './routes'
 import fileSystemRouter from './controllers/file-system'
 import { FileSystem } from '@fairjournal/file-system'
 import { initFs, syncFs } from './fs'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import TonstorageCLI from 'tonstorage-cli'
+import { TonstorageCLI } from 'tonstorage-cli'
 import { delay } from './utils'
 
 const app: Application = express()
@@ -90,10 +88,19 @@ export async function waitTonStorage(tonStorage: TonstorageCLI): Promise<void> {
  * Creates TonStorage instance
  */
 export function createTonStorageInstance(): TonstorageCLI {
+  const bin = process.env.TON_STORAGE_BIN_PATH
+  const host = process.env.TON_STORAGE_HOST
+  const database = process.env.TON_STORAGE_DATABASE_PATH
+  const timeout = Number(process.env.TON_STORAGE_TIMEOUT)
+
+  if (!bin || !host || !database || !timeout) {
+    throw new Error('TonStorage is not configured via .env')
+  }
+
   return new TonstorageCLI({
-    bin: process.env.TON_STORAGE_BIN_PATH,
-    host: process.env.TON_STORAGE_HOST,
-    database: process.env.TON_STORAGE_DATABASE_PATH,
+    bin,
+    host,
+    database,
     timeout: Number(process.env.TON_STORAGE_TIMEOUT),
   })
 }

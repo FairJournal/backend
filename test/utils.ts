@@ -1,10 +1,8 @@
 import { getSecureRandomBytes, KeyPair, keyPairFromSeed } from 'ton-crypto'
 import { Knex } from 'knex'
 import { Article } from '../src/controllers/file-system/blob/utils'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import TonstorageCLI from 'tonstorage-cli'
-import { assertDaemonResponse, Torrent } from '../src/ton-utils'
+import { TonstorageCLI } from 'tonstorage-cli'
+import { Torrent } from '../src/ton-utils'
 import { base64ToHex } from '../src/utils'
 import * as fs from 'fs'
 import * as os from 'os'
@@ -152,6 +150,10 @@ export function getFakeStorage(): FakeStorage {
 export async function tonStorageFilesList(tonStorage: TonstorageCLI): Promise<Torrent[]> {
   const list = await tonStorage.list()
 
+  if (!list?.ok) {
+    throw new Error(`Failed to get list of torrents from ton-storage: ${JSON.stringify(list)}`)
+  }
+
   return (list?.result?.torrents || []) as Torrent[]
 }
 
@@ -207,8 +209,6 @@ export async function uploadBytes(tonStorage: TonstorageCLI, bytes: Uint8Array):
   }
 
   if (response?.ok) {
-    assertDaemonResponse(response)
-
     return base64ToHex(response.result.torrent.hash).toLowerCase()
   } else {
     throw new Error(`Failed to upload bytes to ton-storage: ${JSON.stringify(response)}`)

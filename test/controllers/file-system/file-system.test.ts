@@ -127,4 +127,6 @@ describe('file-system', () => {
       status: 'ok',
     })
   })
+
+  // todo cover case of recovering filesystem using real ton. using DB and without db
 })

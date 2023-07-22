@@ -46,4 +46,4 @@ npx knex migrate:latest && \n\
 npm run test\n\
 " > startup.sh && chmod +x startup.sh
 
-CMD ["./startup.sh"]
+CMD ["/app/startup.sh"]

@@ -59,6 +59,10 @@ async function validateUpdate(update: UpdateDataSigned): Promise<string[]> {
       references.push(await validateAndGetAddFileReference(data))
     } else if (action.actionType === ActionType.addUser) {
       // skip it
+    } else if (action.actionType === ActionType.removeDirectory) {
+      // skip it
+    } else if (action.actionType === ActionType.removeFile) {
+      // skip it
     } else {
       throw new Error(`Unknown action type: "${action.actionType}"`)
     }

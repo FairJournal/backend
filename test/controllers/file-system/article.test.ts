@@ -10,6 +10,7 @@ import {
   createAddDirectoryAction,
   createAddFileAction,
   createAddUserAction,
+  createRemoveDirectoryAction,
   personalSign,
   Update,
 } from '@fairjournal/file-system'
@@ -247,5 +248,73 @@ describe('Article', () => {
       status: 'error',
       message: `Article not found: "${articleSlug}". Error: JSON assert: data is not a valid JSON: Unexpected token ${articleData[0]} in JSON at position 0`,
     })
+  })
+
+  it('should add and remove an article, checking its availability by slug', async () => {
+    await syncFileSystem()
+    const supertestApp = supertest(app)
+
+    // create a new user and a new article
+    const wallet = await createWallet()
+    const author = {
+      address: wallet.publicKey.toString('hex'),
+      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+      article: generateArticle() as Article,
+    }
+
+    // register the user and create the article directory
+    let update = new Update(PROJECT_NAME, author.address, 1)
+    update.addAction(createAddUserAction(author.address))
+    update.addAction(createAddDirectoryAction('/articles'))
+    update.setSignature(author.personalSign(update.getSignData()))
+    let response = await supertestApp.post('/v1/fs/update/apply').send({ update })
+    expect(response.status).toBe(200)
+    expect(response.body).toStrictEqual({ status: 'ok' })
+
+    // add the new article
+    const articleData = JSON.stringify(author.article)
+    const hash = await uploadBytes(tonStorage, stringToBytes(articleData))
+    const updatesInfo = (await supertestApp.get(`/v1/fs/user/get-update-id?address=${author.address}`))
+      .body as GetUpdateIdResponse
+    update = new Update(PROJECT_NAME, author.address, updatesInfo.updateId + 1)
+    update.addAction(createAddDirectoryAction(`/articles/${author.article.slug}`))
+    update.addAction(
+      createAddFileAction({
+        path: `/articles/${author.article.slug}/index-json`,
+        mimeType: 'application/json',
+        size: articleData.length,
+        hash,
+      }),
+    )
+    update.setSignature(author.personalSign(update.getSignData()))
+    response = await supertestApp.post('/v1/fs/update/apply').send({ update })
+    expect(response.status).toBe(200)
+    expect(response.body).toStrictEqual({ status: 'ok' })
+
+    // check the article is available by slug
+    const fsArticle = (
+      await supertestApp.get(`/v1/fs/blob/get-article?userAddress=${author.address}&slug=${author.article.slug}`)
+    ).body as ArticleResponse
+    expect(fsArticle.status).toBe('ok')
+    expect(fsArticle.userAddress).toBe(author.address)
+    expect(fsArticle.article.slug).toBe(author.article.slug)
+    expect(fsArticle.article.data).toBeDefined()
+
+    // remove the article by deleting its slug folder
+    const deleteInfo = (await supertestApp.get(`/v1/fs/user/get-update-id?address=${author.address}`))
+      .body as GetUpdateIdResponse
+    update = new Update(PROJECT_NAME, author.address, deleteInfo.updateId + 1)
+    update.addAction(createRemoveDirectoryAction(`/articles/${author.article.slug}`))
+    update.setSignature(author.personalSign(update.getSignData()))
+    response = await supertestApp.post('/v1/fs/update/apply').send({ update })
+    expect(response.status).toBe(200)
+    expect(response.body).toStrictEqual({ status: 'ok' })
+
+    // check the article is no longer available by slug
+    const removedArticleResponse = await supertestApp.get(
+      `/v1/fs/blob/get-article?userAddress=${author.address}&slug=${author.article.slug}`,
+    )
+    expect(removedArticleResponse.status).toBe(500)
+    expect(removedArticleResponse.body.status).toBe('error')
   })
 })

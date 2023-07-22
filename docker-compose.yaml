@@ -1,23 +1,43 @@
-version: '3'
+version: '3.8'
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - '3333:3333'
-    depends_on:
-      - mysql
-    environment:
-      - DB_HOST=mysql
-  mysql:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: fair_journal
-      MYSQL_USER: fjuser
-      MYSQL_PASSWORD: fjpassword
     volumes:
-      - mysql_data:/var/lib/mysql
+      - .:/app
+      - /app/node_modules
+    ports:
+      - 5000:5000
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'fair_journal'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: ''
+      MYSQL_ROOT_PASSWORD: ''
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - app-network
+
+  ton-storage:
+    image: ubuntu:latest
+    volumes:
+      - .:/app
+    command: >
+      /bin/bash -c "chmod +x /app/start.sh && /app/start.sh"
+
+networks:
+  app-network:
+    driver: bridge
+
 volumes:
-  mysql_data:
+  db-data:

@@ -202,5 +202,50 @@ describe('Article', () => {
     })
   })
 
-  // todo add incorrect articles. check that wouldn't be displayed in the articles list
+  it('add incorrect article with correct index-json for an existing user', async () => {
+    await syncFileSystem()
+    const supertestApp = supertest(app)
+    const wallet = await createWallet()
+    const author = {
+      address: wallet.publicKey.toString('hex'),
+      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+    }
+
+    // Add user first
+    let update = new Update(PROJECT_NAME, author.address, 1)
+    update.addAction(createAddUserAction(author.address))
+    update.addAction(createAddDirectoryAction('/articles'))
+    update.setSignature(author.personalSign(update.getSignData()))
+    await supertestApp.post('/v1/fs/update/apply').send({ update })
+
+    const articleData = 'This is some random short text instead of an actual article.'
+    const hash = await uploadBytes(tonStorage, stringToBytes(articleData))
+
+    const articleSlug = 'random-article'
+    const updatesInfo = (await supertestApp.get(`/v1/fs/user/get-update-id?address=${author.address}`))
+      .body as GetUpdateIdResponse
+    update = new Update(PROJECT_NAME, author.address, updatesInfo.updateId + 1)
+    update.addAction(createAddDirectoryAction(`/articles/${articleSlug}`))
+    update.addAction(
+      createAddFileAction({
+        path: `/articles/${articleSlug}/index-json`,
+        mimeType: 'application/json',
+        size: articleData.length,
+        hash,
+      }),
+    )
+    update.setSignature(author.personalSign(update.getSignData()))
+    const response = await supertestApp.post('/v1/fs/update/apply').send({ update })
+
+    expect(response.status).toBe(200)
+    expect(response.body).toStrictEqual({ status: 'ok' })
+
+    const fsArticle = (
+      await supertestApp.get(`/v1/fs/blob/get-article?userAddress=${author.address}&slug=${articleSlug}`)
+    ).body as ArticleResponse
+    expect(fsArticle).toStrictEqual({
+      status: 'error',
+      message: `Article not found: "${articleSlug}". Error: JSON assert: data is not a valid JSON: Unexpected token ${articleData[0]} in JSON at position 0`,
+    })
+  })
 })

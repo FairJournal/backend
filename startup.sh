@@ -1,5 +1,5 @@
 #!/bin/sh
-/usr/bin/mysqld --user=mysql --protocol=TCP --bind-address=127.0.0.1 &
+/usr/bin/mysqld --user=mysql --bind-address=127.0.0.1 &
 sleep 5 &&
 mysql --protocol=TCP -h 127.0.0.1 -uroot -e "source ./migrations/db.sql" &&
 mysql --protocol=TCP -h 127.0.0.1 -uroot -e "CREATE USER 'fjuser'@'%' IDENTIFIED BY 'fjpassword';" &&

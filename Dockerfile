@@ -24,5 +24,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+
+# Running the shell script to create the .env file
+RUN chmod +x createEnv.sh && ./createEnv.sh
+
 EXPOSE 3333
 CMD ["npm", "run", "test"]

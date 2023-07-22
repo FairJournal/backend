@@ -27,20 +27,23 @@ RUN mkdir ton && mv storage-daemon-linux-arm64 storage-daemon-cli-linux-arm64 to
 # Add the current directory content to the Docker image
 ADD . /app
 
-# Setup MySQL Database
-RUN /usr/bin/mysqld --user=mysql & sleep 5 && \
-    mysql -h 127.0.0.1 -uroot -e "source ./migrations/db.sql" && \
-    mysql -h 127.0.0.1 -uroot -e "CREATE USER 'fjuser'@'%' IDENTIFIED BY 'fjpassword';" && \
-    mysql -h 127.0.0.1 -uroot -e "GRANT ALL ON fair_journal.* TO 'fjuser'@'%';" && \
-    mysql -h 127.0.0.1 -uroot -e "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '';"
-
 # Install project dependencies
 RUN npm ci
 
 # Run scripts
 RUN npm run check:types
 RUN npm run lint:check
-RUN npx knex migrate:latest
 
-# Start tests
-CMD ["npm", "run", "test"]
+# Create a startup script to run MySQL and tests concurrently
+RUN echo "#!/bin/sh\n\
+/usr/bin/mysqld --user=mysql &\n\
+sleep 5 && \n\
+mysql -h 127.0.0.1 -uroot -e \"source ./migrations/db.sql\" && \n\
+mysql -h 127.0.0.1 -uroot -e \"CREATE USER 'fjuser'@'%' IDENTIFIED BY 'fjpassword';\" && \n\
+mysql -h 127.0.0.1 -uroot -e \"GRANT ALL ON fair_journal.* TO 'fjuser'@'%';\" && \n\
+mysql -h 127.0.0.1 -uroot -e \"ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '';\" && \n\
+npx knex migrate:latest && \n\
+npm run test\n\
+" > startup.sh && chmod +x startup.sh
+
+CMD ["./startup.sh"]

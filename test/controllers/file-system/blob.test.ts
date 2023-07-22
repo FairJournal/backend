@@ -1,7 +1,6 @@
 // todo change managing of the file system to configure and call when needed
-import tmp from "tmp";
-
 process.env.SHOW_LOGS = 'false'
+import tmp from 'tmp'
 import path from 'path'
 import knex from 'knex'
 import knexConfig from '../../../knexfile'
@@ -12,7 +11,7 @@ import { createAddFileAction, createAddUserAction, personalSign, Update } from '
 import { createWallet, removeAllTonStorageFiles, tonStorageFilesList } from '../../utils'
 import { MAX_BLOB_SIZE, PROJECT_NAME } from '../../../src/controllers/file-system/const'
 import { TonstorageCLI } from 'tonstorage-cli'
-import fs from "fs";
+import fs from 'fs'
 
 const db = knex(knexConfig.development)
 

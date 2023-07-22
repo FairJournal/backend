@@ -7,31 +7,6 @@ import * as fs from 'fs'
 import { FileStatus } from '../types'
 
 /**
- * Response with file info
- */
-export interface UploadActionResponse {
-  /**
-   * Reference in storage
-   */
-  reference: string
-
-  /**
-   * Mime type of the file
-   */
-  mime_type: string
-
-  /**
-   * Sha256 of the file
-   */
-  sha256: string
-
-  /**
-   * Size of the file
-   */
-  size: number
-}
-
-/**
  * DB model of the file
  */
 export interface DBFileInfo {
@@ -158,15 +133,12 @@ function removeFileAndDirectory(filePath: string, directoryPath: string): void {
 }
 
 /**
- * Uploads file, upload it to the storage, insert info into database and return the file info
+ * Validate the uploaded file
  *
- * @param req Request
- * @param res Response
- * @param next Next function
+ * @param file File to be validated
+ * @throws Will throw an error if the file or its properties are not valid
  */
-export default async (req: Request, res: Response, next: NextFunction) => {
-  const file = req.file
-
+function assertValidFile(file: Express.Multer.File | undefined): asserts file is Express.Multer.File {
   if (!file) {
     throw new Error('File is not uploaded')
   }
@@ -182,56 +154,90 @@ export default async (req: Request, res: Response, next: NextFunction) => {
   if (!file.size) {
     throw new Error('File size is not defined')
   }
+}
 
-  const rootPath = process.env.FILES_ROOT_PATH || __dirname
-  const filePath = toAbsolutePath(rootPath, file.path)
+/**
+ * Handle file upload and storage
+ *
+ * @param filePath Path to the file
+ * @param targetFilePath Target path of the file
+ * @param targetDirectoryPath Target directory of the file
+ * @param sha256 SHA256 of the file
+ * @param file File to be uploaded
+ * @returns fileInfo Information about the file in the database
+ * @throws Will throw an error if the storage adding fails
+ */
+async function handleFileUpload(
+  filePath: string,
+  targetFilePath: string,
+  targetDirectoryPath: string,
+  sha256: string,
+  file: Express.Multer.File,
+): Promise<DBFileInfo> {
+  let fileInfo: DBFileInfo
+  const isUploaded = await isSha256Uploaded(sha256)
 
+  if (isUploaded) {
+    fileInfo = await getFileInfo(sha256)
+  } else {
+    removeFileAndDirectory(targetFilePath, targetDirectoryPath)
+    fs.mkdirSync(targetDirectoryPath, { recursive: true })
+    fs.renameSync(filePath, targetFilePath)
+    const response = await tonstorage.create(targetFilePath, {
+      // copy file to storage. Files should be removed later if they are not used
+      copy: true,
+      // description of the file
+      desc: '',
+      // do not upload file while article is not published
+      upload: false,
+    })
+    let reference = ''
+
+    if (response?.ok) {
+      reference = base64ToHex(response.result.torrent.hash).toLowerCase()
+    } else {
+      if (response?.error?.includes('duplicate hash')) {
+        reference = extractHash(response?.error).toLowerCase()
+      } else {
+        throw new Error(`Error on Ton Storage adding (${sha256}): ${response?.error || 'unknown error'}`)
+      }
+    }
+
+    assertReference(reference)
+    fileInfo = {
+      reference,
+      status: FileStatus.New,
+      mime_type: file.mimetype,
+      size: file.size,
+      sha256,
+      created_at: new Date(),
+      updated_at: new Date(),
+    }
+    await insertFileInfo(fileInfo)
+  }
+
+  return fileInfo
+}
+
+/**
+ * Uploads file, upload it to the storage, insert info into database and return the file info
+ *
+ * @param req Request
+ * @param res Response
+ * @param next Next function
+ */
+export default async (req: Request, res: Response, next: NextFunction) => {
+  let filePath = ''
   try {
+    const file = req.file
+
+    assertValidFile(file)
+    const rootPath = process.env.FILES_ROOT_PATH || __dirname
+    filePath = toAbsolutePath(rootPath, file.path)
     const sha256 = await calculateSHA256(filePath)
     const targetDirectoryPath = toAbsolutePath(rootPath, 'blob', sha256)
     const targetFilePath = toAbsolutePath(targetDirectoryPath, 'blob')
-    const isUploaded = await isSha256Uploaded(sha256)
-
-    let fileInfo: DBFileInfo
-
-    if (isUploaded) {
-      fileInfo = await getFileInfo(sha256)
-    } else {
-      removeFileAndDirectory(targetFilePath, targetDirectoryPath)
-      fs.mkdirSync(targetDirectoryPath)
-      fs.renameSync(filePath, targetFilePath)
-      const response = await tonstorage.create(targetFilePath, {
-        // copy file to storage. Files should be removed later if they are not used
-        copy: true,
-        // description of the file
-        desc: '',
-        // do not upload file while article is not published
-        upload: false,
-      })
-      let reference = ''
-
-      if (response?.ok) {
-        reference = base64ToHex(response.result.torrent.hash).toLowerCase()
-      } else {
-        if (response?.error?.includes('duplicate hash')) {
-          reference = extractHash(response?.error).toLowerCase()
-        } else {
-          throw new Error(`Error on Ton Storage adding (${sha256}): ${response?.error || 'unknown error'}`)
-        }
-      }
-
-      assertReference(reference)
-      fileInfo = {
-        reference,
-        status: FileStatus.New,
-        mime_type: file.mimetype,
-        size: file.size,
-        sha256,
-        created_at: new Date(),
-        updated_at: new Date(),
-      }
-      await insertFileInfo(fileInfo)
-    }
+    const fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
 
     const response = {
       reference: fileInfo.reference,

@@ -1,16 +1,15 @@
-# Start from the latest LTS Ubuntu version built for arm64
-FROM arm64v8/ubuntu:latest
+# Start from the latest LTS Node version built for arm64 on Alpine
+FROM node:alpine
 
 # Add the TON Storage daemon and CLI to the path
 ENV PATH="/app/ton:${PATH}"
 
 WORKDIR /app
 
-# Update system packages
-RUN apt-get update && apt-get upgrade -y
-
 # Install necessary packages
-RUN apt-get install -y curl netcat npm
+# netcat equivalent in Alpine is netcat-openbsd
+# curl is added since it might not be present in Alpine by default
+RUN apk add --no-cache curl netcat-openbsd
 
 # Download TON Storage daemon and CLI binaries
 RUN curl -LJO https://github.com/ton-blockchain/ton/releases/download/v2023.06/storage-daemon-linux-arm64

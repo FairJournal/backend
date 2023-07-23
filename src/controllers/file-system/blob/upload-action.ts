@@ -128,7 +128,9 @@ function removeFileAndDirectory(filePath: string, directoryPath: string): void {
   }
 
   if (fs.existsSync(directoryPath)) {
-    fs.rmdirSync(directoryPath)
+    fs.rmdirSync(directoryPath, {
+      recursive: true,
+    })
   }
 }
 
@@ -281,7 +283,9 @@ export default async (req: Request, res: Response, next: NextFunction) => {
   } finally {
     // remove uploaded file
     try {
-      fs.unlinkSync(filePath)
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+      }
     } catch (e) {
       /* empty */
     }

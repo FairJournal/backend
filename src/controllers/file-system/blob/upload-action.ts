@@ -234,6 +234,23 @@ function checkPathExists(path: string, message: string): void {
 }
 
 /**
+ * Removes the uploaded file at the provided filePath.
+ *
+ * @async
+ * @param filePath Path to the file that should be removed.
+ * @throws Will throw an error if the removal operation fails.
+ */
+async function removeUploadedFile(filePath: string) {
+  try {
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath)
+    }
+  } catch (e) {
+    /* empty */
+  }
+}
+
+/**
  * Uploads file, upload it to the storage, insert info into database and return the file info
  *
  * @param req Request
@@ -242,52 +259,36 @@ function checkPathExists(path: string, message: string): void {
  */
 export default async (req: Request, res: Response, next: NextFunction) => {
   let filePath = ''
-  try {
-    const file = req.file
 
-    assertValidFile(file)
+  try {
     const rootPath = process.env.FILES_ROOT_PATH || __dirname
     checkPathExists(rootPath, 'root path')
+
+    const file = req.file
+    assertValidFile(file)
+
     filePath = toAbsolutePath(rootPath, file.path)
     checkPathExists(filePath, 'file path')
-    let sha256
-    try {
-      sha256 = await calculateSHA256(filePath)
-    } catch (e) {
-      throw new Error(`Error on calculate SHA256 (${filePath}): ${(e as Error).message || 'unknown error'}`)
-    }
+
+    const sha256 = await calculateSHA256(filePath)
     const targetDirectoryPath = toAbsolutePath(rootPath, 'blob', sha256)
     const targetFilePath = toAbsolutePath(targetDirectoryPath, 'blob')
-    let fileInfo
-    try {
-      fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
-    } catch (e) {
-      throw new Error(`Error on handle file upload (${filePath}): ${(e as Error).message || 'unknown error'}`)
-    }
 
-    const response = {
-      reference: fileInfo.reference,
-      mime_type: fileInfo.mime_type,
-      sha256: fileInfo.sha256,
-      size: fileInfo.size,
-    }
-
+    const fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
     removeFileAndDirectory(targetFilePath, targetDirectoryPath)
 
     res.json({
       status: 'ok',
-      data: response,
+      data: {
+        reference: fileInfo.reference,
+        mime_type: fileInfo.mime_type,
+        sha256: fileInfo.sha256,
+        size: fileInfo.size,
+      },
     })
   } catch (e) {
     next(e)
   } finally {
-    // remove uploaded file
-    try {
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath)
-      }
-    } catch (e) {
-      /* empty */
-    }
+    await removeUploadedFile(filePath)
   }
 }

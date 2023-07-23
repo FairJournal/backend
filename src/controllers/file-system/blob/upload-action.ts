@@ -250,7 +250,6 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     checkPathExists(filePath, 'file path')
     const sha256 = await calculateSHA256(filePath)
     const targetDirectoryPath = toAbsolutePath(rootPath, 'blob', sha256)
-    checkPathExists(targetDirectoryPath, 'target directory path')
     const targetFilePath = toAbsolutePath(targetDirectoryPath, 'blob')
     const fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
 

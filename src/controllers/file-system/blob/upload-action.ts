@@ -248,10 +248,20 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     checkPathExists(rootPath, 'root path')
     filePath = toAbsolutePath(rootPath, file.path)
     checkPathExists(filePath, 'file path')
-    const sha256 = await calculateSHA256(filePath)
+    let sha256
+    try {
+      sha256 = await calculateSHA256(filePath)
+    } catch (e) {
+      throw new Error(`Error on calculate SHA256 (${filePath}): ${(e as Error).message || 'unknown error'}`)
+    }
     const targetDirectoryPath = toAbsolutePath(rootPath, 'blob', sha256)
     const targetFilePath = toAbsolutePath(targetDirectoryPath, 'blob')
-    const fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
+    let fileInfo
+    try {
+      fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
+    } catch (e) {
+      throw new Error(`Error on handle file upload (${filePath}): ${(e as Error).message || 'unknown error'}`)
+    }
 
     const response = {
       reference: fileInfo.reference,

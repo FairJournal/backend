@@ -232,11 +232,23 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     const file = req.file
 
     assertValidFile(file)
+    // eslint-disable-next-line no-console
+    console.log('process.env.FILES_ROOT_PATH', process.env.FILES_ROOT_PATH)
+    // eslint-disable-next-line no-console
+    console.log('__dirname', __dirname)
     const rootPath = process.env.FILES_ROOT_PATH || __dirname
     filePath = toAbsolutePath(rootPath, file.path)
+    // eslint-disable-next-line no-console
+    console.log('filePath', filePath)
     const sha256 = await calculateSHA256(filePath)
+    // eslint-disable-next-line no-console
+    console.log('sha256', sha256)
     const targetDirectoryPath = toAbsolutePath(rootPath, 'blob', sha256)
+    // eslint-disable-next-line no-console
+    console.log('targetDirectoryPath', targetDirectoryPath)
     const targetFilePath = toAbsolutePath(targetDirectoryPath, 'blob')
+    // eslint-disable-next-line no-console
+    console.log('targetFilePath', targetFilePath)
     const fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
 
     const response = {

@@ -220,6 +220,18 @@ async function handleFileUpload(
 }
 
 /**
+ * Checks that path is exists
+ *
+ * @param path Path to check
+ * @param message Message to be thrown if path does not exist
+ */
+function checkPathExists(path: string, message: string): void {
+  if (!fs.existsSync(path)) {
+    throw new Error(`Path "${path}" does not exist. Message: ${message}`)
+  }
+}
+
+/**
  * Uploads file, upload it to the storage, insert info into database and return the file info
  *
  * @param req Request
@@ -232,23 +244,14 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     const file = req.file
 
     assertValidFile(file)
-    // eslint-disable-next-line no-console
-    console.log('process.env.FILES_ROOT_PATH', process.env.FILES_ROOT_PATH)
-    // eslint-disable-next-line no-console
-    console.log('__dirname', __dirname)
     const rootPath = process.env.FILES_ROOT_PATH || __dirname
+    checkPathExists(rootPath, 'root path')
     filePath = toAbsolutePath(rootPath, file.path)
-    // eslint-disable-next-line no-console
-    console.log('filePath', filePath)
+    checkPathExists(filePath, 'file path')
     const sha256 = await calculateSHA256(filePath)
-    // eslint-disable-next-line no-console
-    console.log('sha256', sha256)
     const targetDirectoryPath = toAbsolutePath(rootPath, 'blob', sha256)
-    // eslint-disable-next-line no-console
-    console.log('targetDirectoryPath', targetDirectoryPath)
+    checkPathExists(targetDirectoryPath, 'target directory path')
     const targetFilePath = toAbsolutePath(targetDirectoryPath, 'blob')
-    // eslint-disable-next-line no-console
-    console.log('targetFilePath', targetFilePath)
     const fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
 
     const response = {

@@ -65,7 +65,7 @@ describe('blob', () => {
     for (const [index, file] of files.entries()) {
       const filePath = path.join(__dirname, `../../data/${file.name}`)
       // eslint-disable-next-line no-console
-      console.log('filePath', filePath)
+      console.log('filePath 222', filePath)
       for (let i = 0; i < 10; i++) {
         const response = await supertestApp.post('/v1/fs/blob/upload').attach('blob', filePath)
 

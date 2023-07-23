@@ -19,6 +19,15 @@ const knexConfig: Knex.Config = {
 const configurations: { [key: string]: Knex.Config } = {
   development: knexConfig,
   production: knexConfig,
+  docker: {
+    ...knexConfig,
+    connection: {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      ...knexConfig.connection,
+      socketPath: '/run/mysqld/mysqld2.sock',
+    },
+  },
 }
 
 export default configurations

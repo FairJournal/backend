@@ -27,7 +27,7 @@ import { stringToBytes } from '../../../src/utils'
 import { GetUpdateIdResponse } from '../../../src/controllers/file-system/user/get-update-id-action'
 import { TonstorageCLI } from 'tonstorage-cli'
 
-const db = knex(knexConfig.development)
+const db = knex(process.env.DB_SOCKET_PATH ? knexConfig.docker : knexConfig.development)
 
 describe('Article', () => {
   let tonStorage: TonstorageCLI
@@ -244,10 +244,11 @@ describe('Article', () => {
     const fsArticle = (
       await supertestApp.get(`/v1/fs/blob/get-article?userAddress=${author.address}&slug=${articleSlug}`)
     ).body as ArticleResponse
-    expect(fsArticle).toStrictEqual({
-      status: 'error',
-      message: `Article not found: "${articleSlug}". Error: JSON assert: data is not a valid JSON: Unexpected token ${articleData[0]} in JSON at position 0`,
-    })
+    expect(fsArticle.status).toBe('error')
+    // not strict comparison because of different error messages on different platforms (macos/linux arm64)
+    expect(fsArticle.message).toContain(
+      `Article not found: "${articleSlug}". Error: JSON assert: data is not a valid JSON`,
+    )
   })
 
   it('should add and remove an article, checking its availability by slug', async () => {

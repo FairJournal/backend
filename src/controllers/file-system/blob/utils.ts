@@ -80,6 +80,11 @@ export interface ArticleResponse {
    * Article
    */
   article: Article
+
+  /**
+   * Error message
+   */
+  message?: string
 }
 
 /**

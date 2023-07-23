@@ -13,7 +13,7 @@ import { MAX_BLOB_SIZE, PROJECT_NAME } from '../../../src/controllers/file-syste
 import { TonstorageCLI } from 'tonstorage-cli'
 import fs from 'fs'
 
-const db = knex(knexConfig.development)
+const db = knex(process.env.DB_SOCKET_PATH ? knexConfig.docker : knexConfig.development)
 
 describe('blob', () => {
   let tonStorage: TonstorageCLI

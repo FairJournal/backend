@@ -3,7 +3,7 @@ import { Knex } from 'knex'
 import { Article } from '../src/controllers/file-system/blob/utils'
 import { TonstorageCLI } from 'tonstorage-cli'
 import { Torrent } from '../src/ton-utils'
-import { base64ToHex } from '../src/utils'
+import { base64ToHex, extractHash } from '../src/utils'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
@@ -208,9 +208,15 @@ export async function uploadBytes(tonStorage: TonstorageCLI, bytes: Uint8Array):
     }
   }
 
+  let reference
+
   if (response?.ok) {
-    return base64ToHex(response.result.torrent.hash).toLowerCase()
+    reference = base64ToHex(response.result.torrent.hash)
+  } else if (response?.error?.includes('duplicate hash')) {
+    reference = extractHash(response?.error)
   } else {
     throw new Error(`Failed to upload bytes to ton-storage: ${JSON.stringify(response)}`)
   }
+
+  return reference.toLowerCase()
 }

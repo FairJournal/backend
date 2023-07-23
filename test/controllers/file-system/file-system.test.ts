@@ -9,7 +9,7 @@ import { createAddUserAction, Update, personalSign } from '@fairjournal/file-sys
 import { PROJECT_NAME } from '../../../src/controllers/file-system/const'
 import { createWallet, getUpdatesCount } from '../../utils'
 
-const db = knex(knexConfig.development)
+const db = knex(process.env.DB_SOCKET_PATH ? knexConfig.docker : knexConfig.development)
 
 describe('file-system', () => {
   beforeEach(async () => {

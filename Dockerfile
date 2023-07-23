@@ -14,15 +14,19 @@ RUN apk add --no-cache curl netcat-openbsd mysql mysql-client
 # Initialize MySQL Database
 RUN mysql_install_db --user=mysql --ldata=/var/lib/mysql
 
+# Create the directory for the MySQL Unix socket and change its ownership
+RUN mkdir -p /run/mysqld/ && chown -R mysql:mysql /run/mysqld/
+
 # Download TON Storage daemon and CLI binaries
 RUN curl -LJO https://github.com/ton-blockchain/ton/releases/download/v2023.06/storage-daemon-linux-arm64
 RUN curl -LJO https://github.com/ton-blockchain/ton/releases/download/v2023.06/storage-daemon-cli-linux-arm64
+RUN curl -LJO https://ton-blockchain.github.io/global.config.json
 
 # Make them executable
 RUN chmod +x storage-daemon-linux-arm64 storage-daemon-cli-linux-arm64
 
 # Move them to the right place
-RUN mkdir ton && mv storage-daemon-linux-arm64 storage-daemon-cli-linux-arm64 ton/
+RUN mkdir ton && mv storage-daemon-linux-arm64 storage-daemon-cli-linux-arm64 global.config.json ton/
 
 # Add the current directory content to the Docker image
 ADD . /app

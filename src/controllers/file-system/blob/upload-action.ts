@@ -250,34 +250,33 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     checkPathExists(rootPath, 'root path')
     filePath = toAbsolutePath(rootPath, file.path)
     checkPathExists(filePath, 'file path')
-    throw new Error(`Path: "${filePath}". Looks like it exists`)
-    // let sha256
-    // try {
-    //   sha256 = await calculateSHA256(filePath)
-    // } catch (e) {
-    //   throw new Error(`Error on calculate SHA256 (${filePath}): ${(e as Error).message || 'unknown error'}`)
-    // }
-    // const targetDirectoryPath = toAbsolutePath(rootPath, 'blob', sha256)
-    // const targetFilePath = toAbsolutePath(targetDirectoryPath, 'blob')
-    // let fileInfo
-    // try {
-    //   fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
-    // } catch (e) {
-    //   throw new Error(`Error on handle file upload (${filePath}): ${(e as Error).message || 'unknown error'}`)
-    // }
-    //
-    // const response = {
-    //   reference: fileInfo.reference,
-    //   mime_type: fileInfo.mime_type,
-    //   sha256: fileInfo.sha256,
-    //   size: fileInfo.size,
-    // }
-    //
-    // removeFileAndDirectory(targetFilePath, targetDirectoryPath)
+    let sha256
+    try {
+      sha256 = await calculateSHA256(filePath)
+    } catch (e) {
+      throw new Error(`Error on calculate SHA256 (${filePath}): ${(e as Error).message || 'unknown error'}`)
+    }
+    const targetDirectoryPath = toAbsolutePath(rootPath, 'blob', sha256)
+    const targetFilePath = toAbsolutePath(targetDirectoryPath, 'blob')
+    let fileInfo
+    try {
+      fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
+    } catch (e) {
+      throw new Error(`Error on handle file upload (${filePath}): ${(e as Error).message || 'unknown error'}`)
+    }
+
+    const response = {
+      reference: fileInfo.reference,
+      mime_type: fileInfo.mime_type,
+      sha256: fileInfo.sha256,
+      size: fileInfo.size,
+    }
+
+    removeFileAndDirectory(targetFilePath, targetDirectoryPath)
 
     res.json({
       status: 'ok',
-      // data: response,
+      data: response,
     })
   } catch (e) {
     next(e)

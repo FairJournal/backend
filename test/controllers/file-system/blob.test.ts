@@ -183,7 +183,6 @@ describe('blob', () => {
       personalSign: (data: string) => personalSign(data, wallet.secretKey),
     }
 
-    // Sync file system before uploading
     await syncFileSystem()
 
     const file1 = {
@@ -298,5 +297,69 @@ describe('blob', () => {
     })
 
     expect(await tonStorageFilesList(tonStorage)).toHaveLength(2)
+  })
+
+  it('get path info for incorrect path', async () => {
+    const supertestApp = supertest(app)
+    const wallet = await createWallet()
+
+    await syncFileSystem()
+
+    const author = {
+      address: wallet.publicKey.toString('hex'),
+      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+    }
+
+    const file = {
+      name: 'file1.txt',
+      mime_type: 'text/plain',
+      size: 12,
+      sha256: 'c0535e4be2b79ffd93291305436bf889314e4a3faec05ecffcbb7df31ad9e51a',
+      reference: '65d9deffdec24c795d88611d32b80831c076000af7402a8b5973bf188b0b6b2d',
+    }
+
+    const filePath = path.join(__dirname, `../../data/${file.name}`)
+    const response = await supertestApp.post('/v1/fs/blob/upload').attach('blob', filePath)
+    expect(response.status).toBe(200)
+
+    const remoteFileName = 'file-test'
+    const remoteFilePath = `/${remoteFileName}`
+
+    const update = new Update(PROJECT_NAME, author.address, 1)
+    update.addAction(createAddUserAction(author.address))
+    update.addAction(
+      createAddFileAction({
+        path: remoteFilePath,
+        mimeType: file.mime_type,
+        size: file.size,
+        hash: file.reference,
+      }),
+    )
+    update.setSignature(author.personalSign(update.getSignData()))
+
+    const applyUpdateResponse = await supertestApp.post('/v1/fs/update/apply').send({ update })
+    expect(applyUpdateResponse.status).toBe(200)
+
+    // Try to get the file without / symbol
+    const pathInfoResponse1 = await supertestApp.get(
+      `/v1/fs/blob/get-path-info?userAddress=${author.address}&path=${remoteFileName}`,
+    )
+    expect(pathInfoResponse1.status).toBe(500)
+    expect(pathInfoResponse1.body).toStrictEqual({
+      status: 'error',
+      message: `Can't get info about the path: Get item: item not found: "${author.address}${remoteFileName}"`,
+    })
+
+    // Try to get another file with a full path but one symbol more
+    const fakePath = `${remoteFilePath}1`
+    const fakeName = `${remoteFileName}1`
+    const pathInfoResponse2 = await supertestApp.get(
+      `/v1/fs/blob/get-path-info?userAddress=${author.address}&path=${fakePath}`,
+    )
+    expect(pathInfoResponse2.status).toBe(500)
+    expect(pathInfoResponse2.body).toStrictEqual({
+      status: 'error',
+      message: `Can't get info about the path: Get item: item not found: "${fakeName}"`,
+    })
   })
 })

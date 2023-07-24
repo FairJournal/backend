@@ -123,15 +123,14 @@ async function isSha256Uploaded(sha256: string): Promise<boolean> {
  * @param directoryPath Path to directory
  */
 function removeFileAndDirectory(filePath: string, directoryPath: string): void {
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath)
-  }
+  fs.rmSync(filePath, {
+    force: true,
+  })
 
-  if (fs.existsSync(directoryPath)) {
-    fs.rmdirSync(directoryPath, {
-      recursive: true,
-    })
-  }
+  fs.rmSync(directoryPath, {
+    recursive: true,
+    force: true,
+  })
 }
 
 /**
@@ -182,6 +181,10 @@ async function handleFileUpload(
   if (isUploaded) {
     fileInfo = await getFileInfo(sha256)
   } else {
+    if (!tonstorage) {
+      throw new Error('Ton Storage is not initialized')
+    }
+
     removeFileAndDirectory(targetFilePath, targetDirectoryPath)
     fs.mkdirSync(targetDirectoryPath, { recursive: true })
     fs.renameSync(filePath, targetFilePath)

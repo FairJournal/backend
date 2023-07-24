@@ -5,6 +5,8 @@ import { RowDataPacket } from 'mysql2'
 import { tonstorage } from '../../../app'
 import * as fs from 'fs'
 import { FileStatus } from '../types'
+import { getReferencePath } from '../../../fs'
+import path from 'path'
 
 /**
  * DB model of the file
@@ -254,6 +256,21 @@ async function removeUploadedFile(filePath: string) {
 }
 
 /**
+ * Sets the permissions of a directory and a file to 0755.
+ *
+ * @param reference Reference of the file
+ */
+function setPermissions(reference: string): void {
+  const filePath = getReferencePath(reference)
+  try {
+    fs.chmodSync(path.dirname(filePath), 0o755)
+    fs.chmodSync(filePath, 0o755)
+  } catch (error) {
+    /* empty */
+  }
+}
+
+/**
  * Uploads file, upload it to the storage, insert info into database and return the file info
  *
  * @param req Request
@@ -278,6 +295,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     const targetFilePath = toAbsolutePath(targetDirectoryPath, 'blob')
 
     const fileInfo = await handleFileUpload(filePath, targetFilePath, targetDirectoryPath, sha256, file)
+    setPermissions(fileInfo.reference)
     removeFileAndDirectory(targetFilePath, targetDirectoryPath)
 
     res.json({

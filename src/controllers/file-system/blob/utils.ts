@@ -1,4 +1,4 @@
-import { assertFiles, Directory } from '@fairjournal/file-system'
+import { assertFiles, Directory, File } from '@fairjournal/file-system'
 import { assertJson, bytesToString } from '../../../utils'
 import { extractArticleText, getContentByReference } from '../../../fs'
 
@@ -85,6 +85,31 @@ export interface ArticleResponse {
    * Error message
    */
   message?: string
+}
+
+/**
+ * Response for `get-path-info` action
+ */
+export interface PathInfoResponse {
+  /**
+   * Status of the response
+   */
+  status: string
+
+  /**
+   * User address
+   */
+  userAddress: string
+
+  /**
+   * Path
+   */
+  path: string
+
+  /**
+   * Directory or file
+   */
+  data: Directory | File
 }
 
 /**

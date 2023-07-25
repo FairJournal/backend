@@ -50,6 +50,8 @@ TON_STORAGE_WAIT_ATTEMPTS=3
 
 # Ton Storage check wait timeout
 TON_STORAGE_CHECK_WAIT_TIMEOUT=1000
+
+PUBLISH_FS_PASSWORD=345134t134g145gh145h54
 EOF
 
 /app/ton/storage-daemon-linux-arm64 -v 5 -C /app/ton/global.config.json -I localhost:3333 -p 5555 -D /app/ton/storage-db >/dev/null 2>&1 &

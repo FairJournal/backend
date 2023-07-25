@@ -1,6 +1,9 @@
-# File System Gateway
+# Mutable File System Gateway
 
 This repository contains the server-side implementation of our decentralized file system gateway. It's designed to provide a public, uncensored file system that can be accessed via the web for individuals wanting to share their data. The backend interfaces with multiple decentralized storage platforms and provides key services to manage data effectively and securely.
+
+In its final stage, this project is envisioned to become a dynamic directory of decentralized, publicly accessible user files available to the entire world. These files will be available to all projects that use the node and are immune to censorship. This is not just a technical project, but a step towards a more transparent and accessible digital world. Harnessing the power of decentralized technologies, we aim to put the control of data back into the hands of users.
+
 
 ## Features
 
@@ -13,6 +16,22 @@ This repository contains the server-side implementation of our decentralized fil
 4. **Appchains:** The combination of the backend and file system allows services to build Appchains for data storage. As the project evolves, these data Appchains will be interconnected in a decentralized manner.
 
 The server-side implementation is designed to work seamlessly with our [Decentralized File System](https://github.com/FairJournal/file-system), providing an end-to-end solution for creating a public, decentralized file system.
+
+## Roadmap
+
+- [x] ✅ POC of mempool
+- [x] ✅ POC of gateway
+- [x] ✅ POC of rollup
+- [x] ✅ POC with the ability to create a file system specific for an app
+- [ ] Add multi-storage capability, backup user's data to different storages
+- [ ] Wrap the project in the form of a node with the same features, should work on mobile
+- [ ] Write a smart contract for storing file system changes for all users across projects
+- [ ] Find a blockchain home for the smart contract
+- [ ] Implement decentralized database distribution for user's updates
+- [ ] Implement incentives for nodes which store and validate the data
+- [ ] Enable the ability to incentivize not only directly by the user, but by Appchains and third parties
+- [ ] 🎉 🌎 Become a worldwide directory of public user files
+
 
 ## API
 
@@ -214,3 +233,7 @@ and run commands:
 Start in dev mode
 
 `start:dev`
+
+Test app using local Docker
+
+`docker build -t your-docker-image-name . && docker run -p 8000:8000 your-docker-image-name`

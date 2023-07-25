@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from 'express'
 import pool from '../../../db'
-import { assertReference, base64ToHex, calculateSHA256, extractHash, toAbsolutePath } from '../../../utils'
+import { assertReference, calculateSHA256, toAbsolutePath } from '../../../utils'
 import { RowDataPacket } from 'mysql2'
 import { tonstorage } from '../../../app'
 import * as fs from 'fs'
 import { FileStatus } from '../types'
 import { getReferencePath } from '../../../fs'
 import path from 'path'
+import { uploadToStorage } from '../utils'
 
 /**
  * DB model of the file
@@ -190,26 +191,7 @@ async function handleFileUpload(
     removeFileAndDirectory(targetFilePath, targetDirectoryPath)
     fs.mkdirSync(targetDirectoryPath, { recursive: true })
     fs.renameSync(filePath, targetFilePath)
-    const response = await tonstorage.create(targetFilePath, {
-      // copy file to storage. Files should be removed later if they are not used
-      copy: true,
-      // description of the file
-      desc: '',
-      // do not upload file while article is not published
-      upload: false,
-    })
-    let reference = ''
-
-    if (response?.ok) {
-      reference = base64ToHex(response.result.torrent.hash).toLowerCase()
-    } else {
-      if (response?.error?.includes('duplicate hash')) {
-        reference = extractHash(response?.error).toLowerCase()
-      } else {
-        throw new Error(`Error on Ton Storage adding (${sha256}): ${response?.error || 'unknown error'}`)
-      }
-    }
-
+    const reference = await uploadToStorage(targetFilePath, sha256, false)
     assertReference(reference)
     fileInfo = {
       reference,

@@ -8,6 +8,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as crypto from 'crypto'
+import { Tree } from '@fairjournal/file-system'
 
 /**
  * Fake storage
@@ -38,8 +39,8 @@ export const TON_SAFE_SIGN_MAGIC = 'ton-safe-sign-magic'
 /**
  * Creates TON wallet with public and secret keys
  */
-export async function createWallet(): Promise<KeyPair> {
-  const seed: Buffer = await getSecureRandomBytes(32) // seed is always 32 bytes
+export async function createWallet(userSeed?: string): Promise<KeyPair> {
+  const seed: Buffer = userSeed ? Buffer.from(userSeed, 'hex') : await getSecureRandomBytes(32) // seed is always 32 bytes
 
   return keyPairFromSeed(seed)
 }
@@ -219,4 +220,18 @@ export async function uploadBytes(tonStorage: TonstorageCLI, bytes: Uint8Array):
   }
 
   return reference.toLowerCase()
+}
+
+/**
+ * Asserts that tree is correct
+ *
+ * @param data Tree to check
+ */
+export function assertTree(data: unknown): asserts data is Tree {
+  // todo remove this method when it will be exported from fs
+  const tree = data as Tree
+
+  if (!tree.directory) {
+    throw new Error('Tree: should contain root directory')
+  }
 }

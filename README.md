@@ -214,3 +214,7 @@ and run commands:
 Start in dev mode
 
 `start:dev`
+
+Test app using local Docker
+
+`docker build -t your-docker-image-name . && docker run -p 8000:8000 your-docker-image-name`

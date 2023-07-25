@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { ActionType, AddDirectoryActionData, AddFileActionData, UpdateDataSigned } from '@fairjournal/file-system'
+import { ActionType, AddFileActionData, UpdateDataSigned } from '@fairjournal/file-system'
 import { fileSystem, tonstorage } from '../../../app'
 import { assertObject, assertReference, getPathParts } from '../../../utils'
 import { DEFAULT_DIRECTORY } from '../const'
@@ -49,11 +49,11 @@ async function validateUpdate(update: UpdateDataSigned): Promise<string[]> {
   const references: string[] = []
   for (const action of update.actions) {
     if (action.actionType === ActionType.addDirectory) {
-      const data = action.actionData as AddDirectoryActionData
-
-      if (!(data.path === `/${DEFAULT_DIRECTORY}` || data.path.startsWith(`/${DEFAULT_DIRECTORY}/`))) {
-        throw new Error(`Invalid path: "${data.path}". All files should be inside "/articles" folder`)
-      }
+      // commented because user should add profile file. define it here or allow full control
+      // const data = action.actionData as AddDirectoryActionData
+      // if (!(data.path === `/${DEFAULT_DIRECTORY}` || data.path.startsWith(`/${DEFAULT_DIRECTORY}/`))) {
+      //   throw new Error(`Invalid path: "${data.path}". All files should be inside "/articles" folder`)
+      // }
     } else if (action.actionType === ActionType.addFile) {
       const data = action.actionData as AddFileActionData
       references.push(await validateAndGetAddFileReference(data))

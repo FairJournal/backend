@@ -25,6 +25,11 @@ export interface ShortArticle {
    * Short text of the article
    */
   shortText: string
+
+  /**
+   * Custom data for preview
+   */
+  previewData: unknown
 }
 
 /**
@@ -40,6 +45,11 @@ export interface Article {
    * Full json object of the article
    */
   data: unknown
+
+  /**
+   * Custom data for preview
+   */
+  preview: unknown
 }
 
 /**
@@ -127,12 +137,13 @@ export async function directoryToShortArticle(directory: Directory): Promise<Sho
 
   const indexContent = bytesToString(await getContentByReference(file.hash))
   assertJson(indexContent)
-  const indexObject = JSON.parse(indexContent)
+  const indexObject = JSON.parse(indexContent) as Article
   const shortText = extractArticleText(indexObject, SHORT_ARTICLE_LENGTH)
 
   return {
     slug: directory.name.toLowerCase(),
     shortText,
+    previewData: indexObject.preview,
   }
 }
 
@@ -185,9 +196,11 @@ export async function directoryToArticle(directory: Directory): Promise<Article>
 
   const indexContent = bytesToString(await getContentByReference(file.hash))
   assertJson(indexContent)
+  const article = JSON.parse(indexContent) as Article
 
   return {
     slug: directory.name.toLowerCase(),
-    data: JSON.parse(indexContent),
+    data: article.data,
+    preview: article.preview,
   }
 }

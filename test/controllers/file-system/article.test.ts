@@ -120,6 +120,7 @@ describe('Article', () => {
         const articleInfo = articlesList.articles[articleIndex]
         expect(articleInfo.slug).toBe(article.slug)
         expect(articleInfo.shortText).toBeDefined()
+        expect(articleInfo.previewData).toBeDefined()
 
         // check full version of the article
         const fsArticle = (
@@ -129,6 +130,7 @@ describe('Article', () => {
         expect(fsArticle.userAddress).toBe(author.address)
         expect(fsArticle.article.slug).toStrictEqual(article.slug)
         expect(fsArticle.article.data).toBeDefined()
+        expect(fsArticle.article.preview).toBeDefined()
       }
     }
   })

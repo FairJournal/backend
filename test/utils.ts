@@ -103,6 +103,9 @@ export function generateArticle(): Article {
         },
       ],
     },
+    preview: {
+      img: 'https://test.domain/test.jpg',
+    },
   }
 }
 

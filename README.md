@@ -117,7 +117,8 @@ This endpoint retrieves a full article based on the user's address and the artic
   "userAddress": "<userAddress>",
   "article": {
     "slug": "<slug>",
-    "data": "<data>"
+    "data": "<data>",
+    "preview": "<data>"
   }
 }
 
@@ -142,7 +143,8 @@ This endpoint retrieves all the articles of a user.
   "articles": [
     {
       "slug": "<slug>",
-      "data": "<data>"
+      "data": "<data>",
+      "preview": "<data>"
     },
     // ... more articles
   ]

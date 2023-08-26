@@ -10,7 +10,7 @@ import { assertString } from '../../../utils'
  * @param res Response
  * @param next Next function
  */
-export default async (req: Request, res: Response, next: NextFunction) => {
+export default async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { key } = req.query
 

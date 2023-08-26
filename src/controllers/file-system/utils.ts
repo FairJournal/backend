@@ -7,6 +7,8 @@ import path from 'path'
 import { getReferencePath } from '../../fs'
 import { Pool } from 'mysql2/promise'
 import { RowDataPacket } from 'mysql2'
+import { File } from '@fairjournal/file-system/dist/src/file-system/file'
+import { Directory } from '@fairjournal/file-system/dist/src/file-system/directory'
 
 /**
  * Settings key that available in the DB
@@ -50,7 +52,7 @@ export function assertPath(data: unknown): asserts data is string {
  * @param address User address
  * @param path Path
  */
-export function getPathInfo(address: string, path: string) {
+export function getPathInfo(address: string, path: string): File | Directory {
   try {
     return fileSystem.getPathInfo(`/${address}${path}`)
   } catch (e) {

@@ -65,7 +65,7 @@ describe('Article', () => {
 
         return {
           address: wallet.publicKey.toString('hex'),
-          personalSign: (data: string) => personalSign(data, wallet.secretKey),
+          personalSign: (data: string): string => personalSign(data, wallet.secretKey),
           articles: [generateArticle(), generateArticle(), generateArticle()] as Article[],
         }
       }),
@@ -140,7 +140,7 @@ describe('Article', () => {
     const wallet = await createWallet()
     const author = {
       address: wallet.publicKey.toString('hex'),
-      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+      personalSign: (data: string): string => personalSign(data, wallet.secretKey),
     }
 
     const update = new Update(PROJECT_NAME, author.address, 1)
@@ -189,7 +189,7 @@ describe('Article', () => {
     const wallet = await createWallet()
     const author = {
       address: wallet.publicKey.toString('hex'),
-      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+      personalSign: (data: string): string => personalSign(data, wallet.secretKey),
     }
 
     const update = new Update(PROJECT_NAME, author.address, 1)
@@ -211,7 +211,7 @@ describe('Article', () => {
     const wallet = await createWallet()
     const author = {
       address: wallet.publicKey.toString('hex'),
-      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+      personalSign: (data: string): string => personalSign(data, wallet.secretKey),
     }
 
     // Add user first
@@ -261,7 +261,7 @@ describe('Article', () => {
     const wallet = await createWallet()
     const author = {
       address: wallet.publicKey.toString('hex'),
-      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+      personalSign: (data: string): string => personalSign(data, wallet.secretKey),
       article: generateArticle() as Article,
     }
 

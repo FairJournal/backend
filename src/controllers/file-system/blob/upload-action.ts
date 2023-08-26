@@ -227,7 +227,7 @@ function checkPathExists(path: string, message: string): void {
  * @param filePath Path to the file that should be removed.
  * @throws Will throw an error if the removal operation fails.
  */
-async function removeUploadedFile(filePath: string) {
+async function removeUploadedFile(filePath: string): Promise<void> {
   try {
     if (filePath && fs.existsSync(filePath)) {
       fs.unlinkSync(filePath)
@@ -259,7 +259,7 @@ function setPermissions(reference: string): void {
  * @param res Response
  * @param next Next function
  */
-export default async (req: Request, res: Response, next: NextFunction) => {
+export default async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   let filePath = ''
 
   try {

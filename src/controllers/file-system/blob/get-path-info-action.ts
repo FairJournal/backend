@@ -10,7 +10,7 @@ import { assertPath, assertUserExists, getPathInfo } from '../utils'
  * @param res The response object
  * @param next The next middleware function in the stack
  */
-export default (req: Request, res: Response, next: NextFunction) => {
+export default (req: Request, res: Response, next: NextFunction): void => {
   try {
     const { userAddress, path } = req.query
     assertAddress(userAddress)

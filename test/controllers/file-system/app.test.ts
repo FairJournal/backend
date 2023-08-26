@@ -80,7 +80,7 @@ describe('App', () => {
 
         return {
           address: wallet.publicKey.toString('hex'),
-          personalSign: (data: string) => personalSign(data, wallet.secretKey),
+          personalSign: (data: string): string => personalSign(data, wallet.secretKey),
         }
       }),
     )

@@ -20,6 +20,7 @@
   "plugins": ["jest", "unused-imports", "@typescript-eslint"],
   "rules": {
     "indent": "off",
+    "@typescript-eslint/explicit-function-return-type": ["error"],
     "@typescript-eslint/indent": ["error", 2],
     "array-bracket-newline": ["error", "consistent"],
     "strict": ["error", "safe"],

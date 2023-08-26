@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { OkPacket } from 'mysql2'
 import pool from '../db'
 
-const upload = async (req: Request, res: Response) => {
+const upload = async (req: Request, res: Response): Promise<Response> => {
   const { authorId } = req.body
 
   if (!authorId) {

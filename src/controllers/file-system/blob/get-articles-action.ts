@@ -4,6 +4,8 @@ import { DEFAULT_DIRECTORY } from '../const'
 import { assertDirectories, assertDirectory } from '@fairjournal/file-system'
 import { fileSystem } from '../../../app'
 import { ArticlesResponse, directoriesToShortArticles } from './utils'
+import { File } from '@fairjournal/file-system/dist/src/file-system/file'
+import { Directory } from '@fairjournal/file-system/dist/src/file-system/directory'
 
 /**
  * Check if user exists
@@ -11,7 +13,7 @@ import { ArticlesResponse, directoriesToShortArticles } from './utils'
  * @param userAddress - User address in the blockchain.
  * @throws Will throw an error if the user is not found.
  */
-function checkUserExistence(userAddress: string) {
+function checkUserExistence(userAddress: string): void {
   if (!fileSystem.isUserExists(userAddress.toLowerCase())) {
     throw new Error(`User not found: "${userAddress}"`)
   }
@@ -23,7 +25,7 @@ function checkUserExistence(userAddress: string) {
  * @param path - Path to the user's articles directory.
  * @throws Will throw an error if the articles are not found.
  */
-function getPathInfoWithErrorHandling(path: string) {
+function getPathInfoWithErrorHandling(path: string): File | Directory {
   try {
     return fileSystem.getPathInfo(path)
   } catch (e) {
@@ -38,7 +40,7 @@ function getPathInfoWithErrorHandling(path: string) {
  * @param res Response
  * @param next Next function
  */
-export default async (req: Request, res: Response, next: NextFunction) => {
+export default async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { userAddress } = req.query
 

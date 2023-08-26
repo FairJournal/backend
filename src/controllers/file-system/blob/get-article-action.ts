@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
 import { assertAddress, assertArticleName } from '../../../utils'
 import { DEFAULT_DIRECTORY } from '../const'
-import { assertDirectory, Directory } from '@fairjournal/file-system'
+import { assertDirectory, assertFile, assertFiles, Directory } from '@fairjournal/file-system'
 import { fileSystem } from '../../../app'
-import { Article, ArticleResponse, directoryToArticle } from './utils'
+import { Article, ARTICLE_INDEX_FILE_NAME, ArticleResponse, directoryToArticle } from './utils'
 import { File } from '@fairjournal/file-system/dist/src/file-system/file'
 
 /**
@@ -66,14 +66,18 @@ export default async (req: Request, res: Response, next: NextFunction): Promise<
     assertArticleName(slug)
     const address = userAddress.toLowerCase()
     checkUserExists(address)
-    const data = await getArticleData(address, slug)
-    assertDirectory(data)
-    const article = await convertDataToArticle(data, slug)
+    const articleData = await getArticleData(address, slug)
+    assertDirectory(articleData)
+    assertFiles(articleData.files)
+    const indexArticle = articleData.files.find(file => file.name === ARTICLE_INDEX_FILE_NAME)
+    assertFile(indexArticle)
+    const article = await convertDataToArticle(articleData, slug)
 
     const response: ArticleResponse = {
       status: 'ok',
       userAddress,
       article,
+      reference: indexArticle.hash,
     }
 
     res.json(response)

@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
 import { assertAddress, assertArticleName } from '../../../utils'
 import { DEFAULT_DIRECTORY } from '../const'
-import { assertDirectory, assertFile, assertFiles, Directory } from '@fairjournal/file-system'
+import { assertDirectory, assertFile, assertFiles, Directory, File } from '@fairjournal/file-system'
 import { fileSystem } from '../../../app'
 import { Article, ARTICLE_INDEX_FILE_NAME, ArticleResponse, directoryToArticle } from './utils'
-import { File } from '@fairjournal/file-system/dist/src/file-system/file'
 
 /**
  * Checks if the user exists in the file system. If not, an error is thrown.

@@ -1,11 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
 import { assertAddress } from '../../../utils'
 import { DEFAULT_DIRECTORY } from '../const'
-import { assertDirectories, assertDirectory } from '@fairjournal/file-system'
+import { assertDirectories, assertDirectory, File, Directory } from '@fairjournal/file-system'
 import { fileSystem } from '../../../app'
 import { ArticlesResponse, directoriesToShortArticles } from './utils'
-import { File } from '@fairjournal/file-system/dist/src/file-system/file'
-import { Directory } from '@fairjournal/file-system/dist/src/file-system/directory'
 
 /**
  * Check if user exists

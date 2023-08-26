@@ -3,12 +3,11 @@ import { assertString, base64ToHex, extractHash } from '../../utils'
 import tmp from 'tmp'
 import fs from 'fs'
 import { ReferencedItem } from '@fairjournal/file-system/dist/src/file-system/interfaces/referenced-item'
+import { File, Directory } from '@fairjournal/file-system'
 import path from 'path'
 import { getReferencePath } from '../../fs'
 import { Pool } from 'mysql2/promise'
 import { RowDataPacket } from 'mysql2'
-import { File } from '@fairjournal/file-system/dist/src/file-system/file'
-import { Directory } from '@fairjournal/file-system/dist/src/file-system/directory'
 
 /**
  * Settings key that available in the DB

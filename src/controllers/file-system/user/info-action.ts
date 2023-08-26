@@ -5,7 +5,7 @@ import { fileSystem } from '../../../app'
 /**
  * Check if user exists in the file system
  */
-export default async (req: Request, res: Response, next: NextFunction) => {
+export default async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { address } = req.query
     assertAddress(address)

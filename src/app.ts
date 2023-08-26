@@ -12,7 +12,12 @@ export let fileSystem: FileSystem
 
 export let tonstorage: TonstorageCLI
 
-export const errorHandler = (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+export const errorHandler = (
+  err: Error,
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+): void => {
   const error = {
     status: 'error',
     message: err.message,

@@ -25,7 +25,7 @@ export interface GetUpdateIdResponse {
 /**
  * Gets current user's update id
  */
-export default async (req: Request, res: Response, next: NextFunction) => {
+export default async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { address } = req.query
     assertAddress(address)

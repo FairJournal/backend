@@ -16,7 +16,7 @@ export interface PublishBody {
 /**
  * Publish action for the file system
  */
-export default async (req: Request, res: Response, next: NextFunction) => {
+export default async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { password } = req.body as PublishBody
 

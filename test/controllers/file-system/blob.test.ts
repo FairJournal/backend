@@ -91,7 +91,7 @@ describe('blob', () => {
 
     const author = {
       address: wallet.publicKey.toString('hex'),
-      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+      personalSign: (data: string): string => personalSign(data, wallet.secretKey),
     }
 
     const nonExistentReference = '0'.repeat(64)
@@ -180,7 +180,7 @@ describe('blob', () => {
     const wallet = await createWallet()
     const author = {
       address: wallet.publicKey.toString('hex'),
-      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+      personalSign: (data: string): string => personalSign(data, wallet.secretKey),
     }
 
     await syncFileSystem()
@@ -307,7 +307,7 @@ describe('blob', () => {
 
     const author = {
       address: wallet.publicKey.toString('hex'),
-      personalSign: (data: string) => personalSign(data, wallet.secretKey),
+      personalSign: (data: string): string => personalSign(data, wallet.secretKey),
     }
 
     const file = {

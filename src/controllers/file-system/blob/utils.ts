@@ -92,6 +92,11 @@ export interface ArticleResponse {
   article: Article
 
   /**
+   * Reference to the article
+   */
+  reference: string
+
+  /**
    * Error message
    */
   message?: string

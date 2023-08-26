@@ -4,7 +4,7 @@ import pool from '../db'
 import User from '../models/User'
 import * as fs from 'fs'
 
-const getUserById = async (req: Request, res: Response) => {
+const getUserById = async (req: Request, res: Response): Promise<Response> => {
   const id = Number(req.params.id)
 
   if (!id) {
@@ -24,7 +24,7 @@ const getUserById = async (req: Request, res: Response) => {
   }
 }
 
-const getArticlesByUserId = async (req: Request, res: Response) => {
+const getArticlesByUserId = async (req: Request, res: Response): Promise<Response> => {
   const id = Number(req.params.id)
 
   if (!id) {
@@ -43,7 +43,7 @@ const getArticlesByUserId = async (req: Request, res: Response) => {
 /**
  * Update user info
  */
-const updateUser = async (req: Request, res: Response) => {
+const updateUser = async (req: Request, res: Response): Promise<Response> => {
   try {
     const id = Number(req.params.id)
 
@@ -107,7 +107,7 @@ const updateUser = async (req: Request, res: Response) => {
   }
 }
 
-const deleteUser = async (req: Request, res: Response) => {
+const deleteUser = async (req: Request, res: Response): Promise<Response> => {
   const id = Number(req.params.id)
 
   if (!id) {
@@ -126,7 +126,7 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 }
 
-const authorizeByWallet = async (req: Request, res: Response) => {
+const authorizeByWallet = async (req: Request, res: Response): Promise<Response> => {
   const { wallet }: { wallet: string } = req.body
 
   try {

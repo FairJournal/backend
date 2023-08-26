@@ -3,6 +3,7 @@ import { assertString, base64ToHex, extractHash } from '../../utils'
 import tmp from 'tmp'
 import fs from 'fs'
 import { ReferencedItem } from '@fairjournal/file-system/dist/src/file-system/interfaces/referenced-item'
+import { File, Directory } from '@fairjournal/file-system'
 import path from 'path'
 import { getReferencePath } from '../../fs'
 import { Pool } from 'mysql2/promise'
@@ -50,7 +51,7 @@ export function assertPath(data: unknown): asserts data is string {
  * @param address User address
  * @param path Path
  */
-export function getPathInfo(address: string, path: string) {
+export function getPathInfo(address: string, path: string): File | Directory {
   try {
     return fileSystem.getPathInfo(`/${address}${path}`)
   } catch (e) {

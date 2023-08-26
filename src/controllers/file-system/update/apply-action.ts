@@ -140,7 +140,7 @@ async function publishAllFiles(update: UpdateDataSigned): Promise<string[]> {
 /**
  * Apply update action to the file system
  */
-export default async (req: Request, res: Response, next: NextFunction) => {
+export default async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { update } = req.body as ApplyBody
     assertObject(update)

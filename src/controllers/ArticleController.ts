@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { OkPacket, RowDataPacket } from 'mysql2'
 import pool from '../db'
 
-const getAllArticles = async (req: Request, res: Response) => {
+const getAllArticles = async (req: Request, res: Response): Promise<Response> => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM articles')
 
@@ -12,7 +12,7 @@ const getAllArticles = async (req: Request, res: Response) => {
   }
 }
 
-const getArticleById = async (req: Request, res: Response) => {
+const getArticleById = async (req: Request, res: Response): Promise<Response> => {
   const id = Number(req.params.id)
 
   if (!id) {
@@ -38,7 +38,7 @@ const getArticleById = async (req: Request, res: Response) => {
   }
 }
 
-const createArticle = async (req: Request, res: Response) => {
+const createArticle = async (req: Request, res: Response): Promise<Response> => {
   const { authorId, hash, content } = req.body
 
   if (!authorId) {

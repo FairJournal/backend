@@ -44,7 +44,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@fairjournal/file-system": "^1.10.0",
+    "@fairjournal/file-system": "^1.10.1",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
